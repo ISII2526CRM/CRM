@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Diagnostics.CodeAnalysis;
 namespace AppForSEII2526.API.Models
 {
 	[Index(nameof(Name), IsUnique = true)]
@@ -29,15 +30,19 @@ namespace AppForSEII2526.API.Models
 			Year = year;
 		}
 
+		[Key]
 		public int Id { get; set; }
 
 		[StringLength(50, ErrorMessage = "Name cannot be longer than 50 characters.")]
+		[Required]
 		public string Name { get; set; }
 
 		[StringLength(30, ErrorMessage = "Brand cannot be longer than 30 characters.")]
+		[Required]
 		public string Brand { get; set; }
 
 		[StringLength(30, ErrorMessage = "Color cannot be longer than 30 characters.")]
+		[AllowNull]
 		public string Color { get; set; }
 
 		[DataType(System.ComponentModel.DataAnnotations.DataType.Currency)]
