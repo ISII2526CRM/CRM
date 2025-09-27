@@ -9,9 +9,15 @@ namespace AppForSEII2526.API.Models
 		{
 		}
 
-		public Device(int id, string name, string brand, string color, double priceForPurchase, double priceForRent, int quantityForPurchase, int quantityForRent, int year)
+		public Device(int id, string name, string brand, string color, double priceForPurchase, double priceForRent, 
+			int quantityForPurchase, int quantityForRent, IList<ReviewItem> reviewItems, int year) : 
+			this(name, brand, color, priceForPurchase, priceForRent, quantityForPurchase, quantityForRent, reviewItems, year)
 		{
-			Id = id; 
+			Id = id;
+		}
+
+		public Device(string name, string brand, string color, double priceForPurchase, double priceForRent, int quantityForPurchase, int quantityForRent, IList<ReviewItem> reviewItems, int year)
+		{ 
 			Name = name; 
 			Brand = brand; 
 			Color = color;	
@@ -19,6 +25,7 @@ namespace AppForSEII2526.API.Models
 			PriceForRent = priceForRent;
 			QuantityForPurchase = quantityForPurchase;
 			QuantityForRent = quantityForRent;
+			ReviewItems = reviewItems;
 			Year = year;
 		}
 
