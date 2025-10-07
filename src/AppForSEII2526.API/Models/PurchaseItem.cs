@@ -10,18 +10,24 @@ namespace AppForSEII2526.API.Models
 		{
 		}
 
-		public PurchaseItem(string description, int deviceId, double price, int purchaseId, int quantity) : 
-			this(description, price, quantity)
+		public PurchaseItem(Device device, Purchase purchase, string description, int deviceId, double price, int purchaseId, int quantity) : 
+			this(device, purchase, description, price, quantity)
 		{
 			DeviceId = deviceId;
 			PurchaseId = purchaseId;
 		}
-		public PurchaseItem(string description, double price, int quantity)
+		public PurchaseItem(Device device, Purchase purchase, string description, double price, int quantity)
 		{
+			Device = device;
+			Purchase = purchase;
 			Description = description;
 			Price = price;
 			Quantity = quantity;
 		}
+
+		public Device Device { get; set; }
+
+		public Purchase Purchase { get; set; }
 
 		[AllowNull]
 		public string Description { get; set; }
