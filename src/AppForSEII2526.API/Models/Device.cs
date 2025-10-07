@@ -10,15 +10,16 @@ namespace AppForSEII2526.API.Models
 		{
 		}
 
-		public Device(int id, string name, string brand, string color, double priceForPurchase, double priceForRent, 
-			int quantityForPurchase, int quantityForRent, IList<ReviewItem> reviewItems, int year) : 
-			this(name, brand, color, priceForPurchase, priceForRent, quantityForPurchase, quantityForRent, reviewItems, year)
+		public Device(int id, Model model, string name, string brand, string color, double priceForPurchase, double priceForRent, 
+			int quantityForPurchase, int quantityForRent, IList<PurchaseItem> purchaseItems, IList<RentDevice> rentedDevices, IList<ReviewItem> reviewItems, int year) : 
+			this(model, name, brand, color, priceForPurchase, priceForRent, quantityForPurchase, quantityForRent, purchaseItems, rentedDevices ,reviewItems, year)
 		{
 			Id = id;
 		}
 
-		public Device(string name, string brand, string color, double priceForPurchase, double priceForRent, int quantityForPurchase, int quantityForRent, IList<ReviewItem> reviewItems, int year)
-		{ 
+		public Device(Model model, string name, string brand, string color, double priceForPurchase, double priceForRent, int quantityForPurchase, int quantityForRent, IList<PurchaseItem> purchaseItems, IList<RentDevice> rentedDevices, IList<ReviewItem> reviewItems, int year)
+		{
+			Model = model;
 			Name = name; 
 			Brand = brand; 
 			Color = color;	
@@ -26,12 +27,16 @@ namespace AppForSEII2526.API.Models
 			PriceForRent = priceForRent;
 			QuantityForPurchase = quantityForPurchase;
 			QuantityForRent = quantityForRent;
+			PurchaseItems = purchaseItems;
+			RentedDevices = rentedDevices;
 			ReviewItems = reviewItems;
 			Year = year;
 		}
 
 		[Key]
 		public int Id { get; set; }
+
+		public Model Model { get; set; }
 
 		[StringLength(50, ErrorMessage = "Name cannot be longer than 50 characters.")]
 		[Required]
@@ -63,11 +68,11 @@ namespace AppForSEII2526.API.Models
 		[Range(0, int.MaxValue, ErrorMessage = "Minimum quantity for Rent is 1")]
 		public int QuantityForRent { get; set; }
 
-		// public IList<RentDevice> RentedDevices { get; set; }
+		public IList<PurchaseItem> PurchaseItems { get; set; }
+		public IList<RentDevice> RentedDevices { get; set; }
 
 		public IList<ReviewItem> ReviewItems { get; set; }
 
 		public int Year { get; set; }
-
-	}
+    }
 }

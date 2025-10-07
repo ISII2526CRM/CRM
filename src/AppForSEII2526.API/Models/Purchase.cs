@@ -10,13 +10,13 @@ namespace AppForSEII2526.API.Models
 		{
 		}
 
-		public Purchase(int purchaseId, string customerUserName, string customerUserSurname, string deliveryAddress, PaymentMethodType paymentMethod, DateTime purchaseDate, double totalPrice, int totalQuantity) : 
-			this(customerUserName, customerUserSurname, deliveryAddress, paymentMethod, purchaseDate, totalPrice, totalQuantity)
+		public Purchase(int purchaseId, string customerUserName, string customerUserSurname, string deliveryAddress, PaymentMethodTypes paymentMethod, DateTime purchaseDate, double totalPrice, int totalQuantity, IList<PurchaseItem> purchaseItems) : 
+			this(customerUserName, customerUserSurname, deliveryAddress, paymentMethod, purchaseDate, totalPrice, totalQuantity, purchaseItems)
 		{
 			Id = purchaseId;
 		}
 
-		public Purchase(string customerUserName, string customerUserSurname, string deliveryAddress, PaymentMethodType paymentMethod, DateTime purchaseDate, double totalPrice, int totalQuantity)
+		public Purchase(string customerUserName, string customerUserSurname, string deliveryAddress, PaymentMethodTypes paymentMethod, DateTime purchaseDate, double totalPrice, int totalQuantity, IList<PurchaseItem> purchaseItems)
 		{
 			CustomerUserName = customerUserName;
 			CustomerUserSurname = customerUserSurname;
@@ -25,6 +25,7 @@ namespace AppForSEII2526.API.Models
 			PurchaseDate = purchaseDate;
 			TotalPrice = totalPrice;
 			TotalQuantity = totalQuantity;
+			PurchaseItems = purchaseItems;
 		}
 
 		public int Id { get; set; }
@@ -47,5 +48,13 @@ namespace AppForSEII2526.API.Models
 
 		public int TotalQuantity { get; set; }
 
+		public IList<PurchaseItem> PurchaseItems { get; set; }
+
 	}
+    public enum PaymentMethodTypes
+    {
+		CreditCard,
+		Paypal,
+		Cash
+    }
 }
