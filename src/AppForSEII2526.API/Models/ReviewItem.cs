@@ -25,5 +25,28 @@ namespace AppForSEII2526.API.Models
         [ForeignKey("Review")]
         public int ReviewId { get; set; }
         public Review Review { get; set; }
+
+        // 🔹 Constructor vacío
+        public ReviewItem()
+        {
+        }
+
+        // 🔹 Constructor sin Id
+        public ReviewItem(int rating, string comments, int deviceId, Device device, int reviewId, Review review)
+        {
+            Rating = rating;
+            Comments = comments;
+            DeviceId = deviceId;
+            Device = device;
+            ReviewId = reviewId;
+            Review = review;
+        }
+
+        // 🔹 Constructor con Id incluido
+        public ReviewItem(int id, int rating, string comments, int deviceId, Device device, int reviewId, Review review)
+            : this(rating, comments, deviceId, device, reviewId, review)
+        {
+            Id = id;
+        }
     }
 }
