@@ -31,6 +31,7 @@
     </TypeIdentifier>
     <ShowAsAssociation>
       <Property Name="RentDevice" />
+      <Property Name="User" />
     </ShowAsAssociation>
   </Class>
   <Class Name="AppForSEII2526.API.Models.RentDevice">
@@ -55,7 +56,7 @@
     </ShowAsCollectionAssociation>
   </Class>
   <Enum Name="AppForSEII2526.API.Models.PaymentMethodType" Collapsed="true">
-    <Position X="11" Y="6.25" Width="1.5" />
+    <Position X="11" Y="6.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAQAAAAAAAAAAQAAQAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Models\Rental.cs</FileName>
