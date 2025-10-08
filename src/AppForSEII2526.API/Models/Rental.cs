@@ -62,7 +62,7 @@
         public double TotalPrice { get; set; }
 
         //Relacion uno a muchos con RentDevice
-        public RentDevice rentDevice { get; set; }
+        public RentDevice RentDevice { get; set; }
 
 
     }
