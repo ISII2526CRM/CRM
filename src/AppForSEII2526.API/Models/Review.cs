@@ -1,7 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
-namespace AppForSEII2526.API.Models
+﻿namespace AppForSEII2526.API.Models
 {
     public class Review
     {
@@ -26,5 +23,28 @@ namespace AppForSEII2526.API.Models
 
         // Relación uno a muchos con ReviewItem
         public IList<ReviewItem> ReviewItems { get; set; }
+
+        // 🔹 Constructor vacío
+        public Review()
+        {
+        }
+
+        // 🔹 Constructor con todos los parámetros excepto ReviewId
+        public Review(string reviewTitle, string customerCountry, string customerId, DateTime dateOfReview, int overallRating, IList<ReviewItem> reviewItems)
+        {
+            ReviewTitle = reviewTitle;
+            CustomerCountry = customerCountry;
+            CustomerId = customerId;
+            DateOfReview = dateOfReview;
+            OverallRating = overallRating;
+            ReviewItems = reviewItems;
+        }
+
+        // 🔹 Constructor con ReviewId incluido
+        public Review(int reviewId, string reviewTitle, string customerCountry, string customerId, DateTime dateOfReview, int overallRating, IList<ReviewItem> reviewItems)
+            : this(reviewTitle, customerCountry, customerId, dateOfReview, overallRating, reviewItems)
+        {
+            ReviewId = reviewId;
+        }
     }
 }
