@@ -29,6 +29,9 @@ namespace AppForSEII2526.API.Models
 		[Key]
 		public int Id { get; set; }
 
+		[Required]
+		public ApplicationUser User { get; set; }
+
         [DataType(System.ComponentModel.DataAnnotations.DataType.MultilineText)]
         [Display(Name = "Delivery Address")]
         [Required(AllowEmptyStrings = false, ErrorMessage = "Please, set your address for delivery")]
@@ -41,7 +44,9 @@ namespace AppForSEII2526.API.Models
 		[Required]
 		public DateTime PurchaseDate { get; set; }
 
-		[Required]
+        [DataType(System.ComponentModel.DataAnnotations.DataType.Currency)]
+        [Range(0.5, float.MaxValue, ErrorMessage = "Minimum price is 0.5")]
+        [Required]
 		public double TotalPrice { get; set; }
 
 		[Required]
