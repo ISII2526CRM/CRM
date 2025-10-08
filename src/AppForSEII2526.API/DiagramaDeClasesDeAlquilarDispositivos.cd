@@ -1,0 +1,55 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1" MembersFormat="NameAndType">
+  <Class Name="AppForSEII2526.API.Models.Device">
+    <Position X="1.25" Y="1.5" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAASAAQCBABAAAAAAQAAAAQAAAAgAAAAAAgAgBABAAA=</HashCode>
+      <FileName>Models\Device.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Model" />
+    </ShowAsAssociation>
+    <ShowAsCollectionAssociation>
+      <Property Name="RentedDevices" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="AppForSEII2526.API.Models.Model">
+    <Position X="6.5" Y="1.25" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAAAAAAAAAAAABAAAQAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\Model.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Property Name="Devices" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="AppForSEII2526.API.Models.Rental">
+    <Position X="12.75" Y="3" Width="2" />
+    <TypeIdentifier>
+      <HashCode>EAADAAAAAAAAAAAABCAAAEQABgAAQAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\Rental.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="rentDevice" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="AppForSEII2526.API.Models.RentDevice">
+    <Position X="6.5" Y="3.75" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAgAAAAAAQAAAAAAAAAAAAAAQAAAAAEAEAAAgAAAAAA=</HashCode>
+      <FileName>Models\RentDevice.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Property Name="Rentals" />
+      <Property Name="Devices" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Enum Name="AppForSEII2526.API.Models.PaymentMethodType" Collapsed="true">
+    <Position X="13" Y="1" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAQAAAAAAAAAAQAAQAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\Rental.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
