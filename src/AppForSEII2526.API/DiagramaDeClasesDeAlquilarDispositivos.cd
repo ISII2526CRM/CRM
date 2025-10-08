@@ -26,11 +26,11 @@
   <Class Name="AppForSEII2526.API.Models.Rental">
     <Position X="10.75" Y="3.25" Width="2" />
     <TypeIdentifier>
-      <HashCode>EAADAAAAAAAAAAAABCAAAEAAAgAAQAAAAAAAAAAAAAA=</HashCode>
+      <HashCode>EAADAAAAAAAAAAAABCACAEAAAAAAQAAAAAAAAAAAAAA=</HashCode>
       <FileName>Models\Rental.cs</FileName>
     </TypeIdentifier>
     <ShowAsAssociation>
-      <Property Name="rentDevice" />
+      <Property Name="RentDevice" />
     </ShowAsAssociation>
   </Class>
   <Class Name="AppForSEII2526.API.Models.RentDevice">

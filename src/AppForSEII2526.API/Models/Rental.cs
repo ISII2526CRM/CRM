@@ -62,10 +62,12 @@
         public double TotalPrice { get; set; }
 
         //Relacion uno a muchos con RentDevice
-        public RentDevice rentDevice { get; set; }
+        public RentDevice RentDevice { get; set; }
 
-
+        //Relacion uno a muchos con ApplicationUser
+        public ApplicationUser User { get; set; }
     }
+
     public enum PaymentMethodType
     {
         CreditCard,
