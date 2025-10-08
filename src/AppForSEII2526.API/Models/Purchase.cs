@@ -10,16 +10,14 @@ namespace AppForSEII2526.API.Models
 		{
 		}
 
-		public Purchase(int purchaseId, string customerUserName, string customerUserSurname, string deliveryAddress, PaymentMethodTypes paymentMethod, DateTime purchaseDate, double totalPrice, int totalQuantity, IList<PurchaseItem> purchaseItems) : 
-			this(customerUserName, customerUserSurname, deliveryAddress, paymentMethod, purchaseDate, totalPrice, totalQuantity, purchaseItems)
+		public Purchase(int purchaseId, string deliveryAddress, PaymentMethodTypes paymentMethod, DateTime purchaseDate, double totalPrice, int totalQuantity, IList<PurchaseItem> purchaseItems) : 
+			this(deliveryAddress, paymentMethod, purchaseDate, totalPrice, totalQuantity, purchaseItems)
 		{
 			Id = purchaseId;
 		}
 
-		public Purchase(string customerUserName, string customerUserSurname, string deliveryAddress, PaymentMethodTypes paymentMethod, DateTime purchaseDate, double totalPrice, int totalQuantity, IList<PurchaseItem> purchaseItems)
+		public Purchase(string deliveryAddress, PaymentMethodTypes paymentMethod, DateTime purchaseDate, double totalPrice, int totalQuantity, IList<PurchaseItem> purchaseItems)
 		{
-			CustomerUserName = customerUserName;
-			CustomerUserSurname = customerUserSurname;
 			DeliveryAddress = deliveryAddress;
 			PaymentMethod = paymentMethod;
 			PurchaseDate = purchaseDate;
@@ -28,11 +26,8 @@ namespace AppForSEII2526.API.Models
 			PurchaseItems = purchaseItems;
 		}
 
+		[Key]
 		public int Id { get; set; }
-
-		public string CustomerUserName { get; set; }
-
-		public string CustomerUserSurname { get; set; }
 
         [DataType(System.ComponentModel.DataAnnotations.DataType.MultilineText)]
         [Display(Name = "Delivery Address")]
@@ -40,14 +35,19 @@ namespace AppForSEII2526.API.Models
         public string DeliveryAddress { get; set; }
 
         [Display(Name = "Payment Method")]
+		[Required]
         public PaymentMethodTypes PaymentMethod { get; set; }
 
+		[Required]
 		public DateTime PurchaseDate { get; set; }
 
+		[Required]
 		public double TotalPrice { get; set; }
 
+		[Required]
 		public int TotalQuantity { get; set; }
 
+		[Required]
 		public IList<PurchaseItem> PurchaseItems { get; set; }
 
 	}
