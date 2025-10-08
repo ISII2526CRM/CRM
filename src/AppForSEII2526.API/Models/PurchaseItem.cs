@@ -25,8 +25,10 @@ namespace AppForSEII2526.API.Models
 			Quantity = quantity;
 		}
 
+		[Required]
 		public Device Device { get; set; }
 
+		[Required]
 		public Purchase Purchase { get; set; }
 
 		[AllowNull]
@@ -36,11 +38,13 @@ namespace AppForSEII2526.API.Models
 
         [DataType(System.ComponentModel.DataAnnotations.DataType.Currency)]
         [Range(0.5, float.MaxValue, ErrorMessage = "Minimum price is 0.5")]
+		[Required]
         public double Price { get; set; }
 
 		public int PurchaseId { get; set; }
 
 		[Range(1, int.MaxValue, ErrorMessage = "You must provide a quantity higher than 1")]
+		[Required]
 		public int Quantity { get; set; }
 
 	}

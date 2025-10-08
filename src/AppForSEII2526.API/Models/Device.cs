@@ -36,6 +36,7 @@ namespace AppForSEII2526.API.Models
 		[Key]
 		public int Id { get; set; }
 
+		[Required]
 		public Model Model { get; set; }
 
 		[StringLength(50, ErrorMessage = "Name cannot be longer than 50 characters.")]
@@ -47,17 +48,19 @@ namespace AppForSEII2526.API.Models
 		public string Brand { get; set; }
 
 		[StringLength(30, ErrorMessage = "Color cannot be longer than 30 characters.")]
-		[AllowNull]
+		[Required]
 		public string Color { get; set; }
 
 		[DataType(System.ComponentModel.DataAnnotations.DataType.Currency)]
         [Range(0.5, float.MaxValue, ErrorMessage = "Minimum price is 0.5")]
         [Display(Name = "Price For Purchase")]
+		[Required]
         public double PriceForPurchase { get; set; }
 
         [DataType(System.ComponentModel.DataAnnotations.DataType.Currency)]
 		[Range(0.5, float.MaxValue, ErrorMessage = "Minimum price is 0.5")]
 		[Display(Name = "Price For Renting")]
+		[Required]
 		public double PriceForRent { get; set; }
 
 		[Display(Name = "Quantity For Purchase")]
