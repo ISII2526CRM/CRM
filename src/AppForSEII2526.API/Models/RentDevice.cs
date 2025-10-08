@@ -3,6 +3,18 @@
     [PrimaryKey(nameof(DeviceId), nameof(RentId))]
     public class RentDevice
     {
+        public RentDevice() 
+        { 
+        }
+
+        public RentDevice(double price, int quantity, int deviceId, int rentId)
+        {
+            Price = price;
+            Quantity = quantity;
+            DeviceId = deviceId;
+            RentId = rentId;
+        }
+
         public double Price { get; set; }
 
         public int Quantity { get; set; }
