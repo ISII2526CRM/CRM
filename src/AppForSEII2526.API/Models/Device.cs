@@ -33,7 +33,6 @@ namespace AppForSEII2526.API.Models
 			Year = year;
 		}
 
-		[Key]
 		public int Id { get; set; }
 
 		[Required]
@@ -52,13 +51,13 @@ namespace AppForSEII2526.API.Models
 		public string Color { get; set; }
 
 		[DataType(System.ComponentModel.DataAnnotations.DataType.Currency)]
-        [Range(0.5, float.MaxValue, ErrorMessage = "Minimum price is 0.5")]
+        [Range(0.5, double.MaxValue, ErrorMessage = "Minimum price is 0.5")]
         [Display(Name = "Price For Purchase")]
 		[Required]
         public double PriceForPurchase { get; set; }
 
         [DataType(System.ComponentModel.DataAnnotations.DataType.Currency)]
-		[Range(0.5, float.MaxValue, ErrorMessage = "Minimum price is 0.5")]
+		[Range(0.5, double.MaxValue, ErrorMessage = "Minimum price is 0.5")]
 		[Display(Name = "Price For Renting")]
 		[Required]
 		public double PriceForRent { get; set; }

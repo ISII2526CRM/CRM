@@ -20,7 +20,6 @@ namespace AppForSEII2526.API.Models
             NameModel = nameModel;
         }
 
-        [Key]
         public int Id { get; set; }
 
         [StringLength(50, ErrorMessage = "Model name cannot be longer than 50 characters.")]
