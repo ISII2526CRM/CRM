@@ -24,7 +24,7 @@ namespace AppForSEII2526.API.Controllers
         [ProducesResponseType(typeof(IList<Device>), (int)HttpStatusCode.OK)]
         public async Task<ActionResult> GetDeviceForReview()
         {
-            IList<Device> devices = await _context.Devices
+            IList<Device> devices = await _context.Device
                 .ToListAsync();
             return Ok(devices);
         }
