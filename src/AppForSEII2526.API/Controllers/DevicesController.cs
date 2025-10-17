@@ -2,6 +2,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using AppForSEII2526.API.DTOs;
+using AppForSEII2526.API.DTOs.ReseñasDTOs;
+
 namespace AppForSEII2526.API.Controllers
 {
     [Route("api/[controller]")]
@@ -21,15 +24,20 @@ namespace AppForSEII2526.API.Controllers
 
         [HttpGet]
         [Route("action")]
-        [ProducesResponseType(typeof(IList<Device>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(IList<DevicesReseñaDTO>), (int)HttpStatusCode.OK)]
         public async Task<ActionResult> GetDeviceForReview()
         {
-            IList<Device> devices = await _context.Device
+            var devices = await _context.Device
+                .Select(m => new DevicesReseñaDTO(
+                    m.Id,
+                    m.Brand,
+                    m.Color,
+                    m.Year,
+                    m.Model.NameModel
+                ))
                 .ToListAsync();
             return Ok(devices);
         }
-        
-
     }
 }
 
