@@ -2,7 +2,6 @@
 {
     public class Review
     {
-        [Key]
         public int ReviewId { get; set; }
 
         [StringLength(100)]

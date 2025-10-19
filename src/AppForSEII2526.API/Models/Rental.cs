@@ -30,7 +30,6 @@
         [StringLength(100, ErrorMessage = "El campo DeliveryAddress no puede ser mayor a 100 caracteres ni menor de 1 caracter.", MinimumLength = 1)]
         public string DeliveryAddress { get; set; }
 
-        [Key]
         public int Id { get; set; }
 
         //[Required]
