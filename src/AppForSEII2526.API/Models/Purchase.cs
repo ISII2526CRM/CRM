@@ -26,7 +26,6 @@ namespace AppForSEII2526.API.Models
 			PurchaseItems = purchaseItems;
 		}
 
-		[Key]
 		public int Id { get; set; }
 
 		[Required]
@@ -45,7 +44,7 @@ namespace AppForSEII2526.API.Models
 		public DateTime PurchaseDate { get; set; }
 
         [DataType(System.ComponentModel.DataAnnotations.DataType.Currency)]
-        [Range(0.5, float.MaxValue, ErrorMessage = "Minimum price is 0.5")]
+        [Range(0.5, double.MaxValue, ErrorMessage = "Minimum price is 0.5")]
         [Required]
 		public double TotalPrice { get; set; }
 
