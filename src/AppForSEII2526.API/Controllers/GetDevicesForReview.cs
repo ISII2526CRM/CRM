@@ -25,7 +25,7 @@ namespace AppForSEII2526.API.Controllers
 
 
         [HttpGet]
-        [Route("GetDevicesForReview")]
+        [Route("[action]")]
         [ProducesResponseType(typeof(IList<DevicesReseñaDTO>), (int)HttpStatusCode.OK)]
         public async Task<ActionResult<IList<DevicesReseñaDTO>>> GetDeviceForReview()
         {
@@ -47,7 +47,7 @@ namespace AppForSEII2526.API.Controllers
 
 
         [HttpGet]
-        [Route("GetDetails")]
+        [Route("[action]")]
         [ProducesResponseType(typeof(IList<DevicesReseñaDTO>), (int)HttpStatusCode.OK)]
         public async Task<ActionResult> GetDeviceForReviewFiltro(string? Brand, int? Year)
 
