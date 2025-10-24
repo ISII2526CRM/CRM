@@ -23,8 +23,31 @@ namespace AppForSEII2526.API.Controllers
         }
 
 
+
         [HttpGet]
-        [Route("action-filtrado")]
+        [Route("GetDevicesForReview")]
+        [ProducesResponseType(typeof(IList<DevicesReseñaDTO>), (int)HttpStatusCode.OK)]
+        public async Task<ActionResult<IList<DevicesReseñaDTO>>> GetDeviceForReview()
+        {
+            var devices = await _context.Device
+                .AsNoTracking()
+                .Include(d => d.Model)
+                .Select(m => new DevicesReseñaDTO(
+                    m.Id,
+                    m.Brand,
+                    m.Color,
+                    m.Year,
+                    m.Model.NameModel 
+                ))
+                .ToListAsync();
+
+            return Ok(devices);
+        }
+
+
+
+        [HttpGet]
+        [Route("GetDetails")]
         [ProducesResponseType(typeof(IList<DevicesReseñaDTO>), (int)HttpStatusCode.OK)]
         public async Task<ActionResult> GetDeviceForReviewFiltro(string? Brand, int? Year)
 
