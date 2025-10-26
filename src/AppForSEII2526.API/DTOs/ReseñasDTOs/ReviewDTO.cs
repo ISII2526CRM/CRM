@@ -15,7 +15,7 @@ using System.ComponentModel.DataAnnotations;
     
     public class ReviewDetailsDTO
     {
-        public string CustomerName { get; set; } 
+        public string Username { get; set; } 
         public string CustomerCountry { get; set; }
         public string ReviewTitle { get; set; } 
         public DateTime DateOfReview { get; set; } 

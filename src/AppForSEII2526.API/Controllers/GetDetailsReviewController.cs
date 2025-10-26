@@ -43,7 +43,7 @@ namespace AppForSEII2526.API.Controllers
                 // 2. Proyectamos el resultado al DTO
                 .Select(r => new ReviewDetailsDTO
                 {
-                    CustomerName = r.User.UserName,
+                    Username = r.User.UserName,
                     CustomerCountry = r.CustomerCountry,
                     ReviewTitle = r.ReviewTitle,
                     DateOfReview = r.DateOfReview,
