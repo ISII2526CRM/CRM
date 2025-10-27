@@ -7,15 +7,15 @@ namespace AppForSEII2526.API.Controllers
     [Route("api/[controller]")] // [controller] se reemplazará por "GetDetailsReview"
     [ApiController]
     // 3. La clase hereda de ControllerBase y NO está anidada
-    public class GetDetailsReviewController : ControllerBase
+    public class ReviewsController : ControllerBase
     {
         //used to enable your controller to access to the database
         private readonly ApplicationDbContext _context;
         //used to log any information when your system es running
-        private readonly ILogger<GetDetailsReviewController> _logger; // <-- Cambiado a GetDetailsReviewController
+        private readonly ILogger<ReviewsController> _logger; // <-- Cambiado a GetDetailsReviewController
 
         // 4. El constructor coincide con el nombre de la clase
-        public GetDetailsReviewController(ApplicationDbContext context, ILogger<GetDetailsReviewController> logger)
+        public ReviewsController(ApplicationDbContext context, ILogger<ReviewsController> logger)
         {
             _context = context;
             _logger = logger;
