@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AppForSEII2526.API.Data
 {
-    public class ApplicationDbContext : DbContext
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         public DbSet<Device> Device { get; set; }
 
