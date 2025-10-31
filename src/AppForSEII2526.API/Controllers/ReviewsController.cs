@@ -12,7 +12,7 @@ using AppForSEII2526.API.Data;
 
 namespace AppForSEII2526.API.Controllers
 {
-    [Route("GetReviewDetails")]
+    [Route("[action]")]
     [ApiController]
     public class ReviewsController : ControllerBase
     {
@@ -66,9 +66,10 @@ namespace AppForSEII2526.API.Controllers
         }
 
         [HttpPost]
-        [Route("CreateReview")]
-        [ProducesResponseType((int)HttpStatusCode.Created)]
-        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        [Route("[action]")]
+        [ProducesResponseType(typeof (ReviewDTO), (int)HttpStatusCode.Created)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.Conflict)]
         public async Task<ActionResult> Create([FromBody] CreateReviewDTO input)
         {
             // Validación básica de DTO
