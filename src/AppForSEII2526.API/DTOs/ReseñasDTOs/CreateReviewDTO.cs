@@ -1,4 +1,5 @@
-﻿namespace AppForSEII2526.API.DTOs.ReseñasDTOs
+﻿
+namespace AppForSEII2526.API.DTOs.ReseñasDTOs
 {
     public class CreateReviewDTO
     {
@@ -18,7 +19,26 @@
         // Opcional: nombre de usuario del cliente (si existe en la base de datos)
         public string? Username { get; set; }
 
-        
+        public List<ReviewItemDTO> ReviewItems { get; set; }
+
+        public CreateReviewDTO()
+        {
+            ReviewItems = new List<ReviewItemDTO>();
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is CreateReviewDTO dTO &&
+                   ReviewTitle == dTO.ReviewTitle &&
+                   CustomerCountry == dTO.CustomerCountry &&
+                   Username == dTO.Username &&
+                   EqualityComparer<List<ReviewItemDTO>>.Default.Equals(ReviewItems, dTO.ReviewItems);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(ReviewTitle, CustomerCountry, Username, ReviewItems);
+        }
     }
 
     

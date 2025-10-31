@@ -79,14 +79,12 @@ namespace AppForSEII2526.API.Controllers
                 return BadRequest(ModelState);
 
             // Comprueba que existen items
-            if (input.Items == null || !input.Items.Any())
+            if (input.ReviewItems == null || !input.ReviewItems.Any())
                 return BadRequest("Se requiere al menos un dispositivo con comentario y puntuación.");
 
             // Validar que todos los ratings y comentarios estén presentes
-            foreach (var it in input.Items)
+            foreach (var it in input.ReviewItems)
             {
-                if (it.DeviceId <= 0)
-                    return BadRequest("DeviceId inválido en alguno de los ítems.");
                 if (it.Rating < 1 || it.Rating > 5)
                     return BadRequest("La puntuación debe estar entre 1 y 5.");
                 if (string.IsNullOrWhiteSpace(it.Comment))
@@ -94,20 +92,20 @@ namespace AppForSEII2526.API.Controllers
             }
 
             // Verificar que los dispositivos existen en la BBDD
-            var deviceIds = input.Items.Select(i => i.DeviceId).Distinct().ToList();
+            var deviceIds = input.ReviewItems.Select(i => i.DeviceId).Distinct().ToList();
             var devices = await _context.Device.Where(d => deviceIds.Contains(d.Id)).ToListAsync();
             var missing = deviceIds.Except(devices.Select(d => d.Id)).ToList();
             if (missing.Any())
                 return BadRequest($"No se encontraron dispositivos con Ids: {string.Join(", ", missing)}");
 
-            // Intentamos obtener el usuario si se proporcionó nombre (opcional)
+            
             AppForSEII2526.API.Models.ApplicationUser? user = null;
             if (!string.IsNullOrWhiteSpace(input.Username))
             {
                 user = await _context.ApplicationUser.FirstOrDefaultAsync(u => u.UserName == input.Username);
                 if (user == null)
                 {
-                    // No crear usuario automáticamente; solo informar en el log y continuar sin relación de usuario.
+                    
                     _logger.LogInformation("Usuario proporcionado en la reseña no existe: {Username}. La reseña se creará sin usuario asociado.", input.Username);
                 }
             }
@@ -119,7 +117,7 @@ namespace AppForSEII2526.API.Controllers
                 CustomerCountry = input.CustomerCountry,
                 DateOfReview = DateTime.UtcNow,
                 // OverallRating opcional: se puede calcular como media de los items
-                OverallRating = (int)Math.Round(input.Items.Average(i => i.Rating)),
+                OverallRating = (int)Math.Round(input.ReviewItems.Average(i => i.Rating)),
                 ReviewItems = new List<AppForSEII2526.API.Models.ReviewItem>()
             };
 
@@ -129,7 +127,7 @@ namespace AppForSEII2526.API.Controllers
             }
 
             // Crear ReviewItems y asociarlos
-            foreach (var it in input.Items)
+            foreach (var it in input.ReviewItems)
             {
                 var reviewItem = new AppForSEII2526.API.Models.ReviewItem
                 {
