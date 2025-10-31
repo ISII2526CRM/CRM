@@ -5,7 +5,16 @@ using System.ComponentModel.DataAnnotations;
 
     public class ReviewDetailsDTO
     {
-        public string Username { get; set; } 
+    public ReviewDetailsDTO(string username, string customerCountry, string reviewTitle, DateTime dateOfReview, IList<ReviewItemDetailsDTO> reviewItems)
+    {
+        Username = username;
+        CustomerCountry = customerCountry;
+        ReviewTitle = reviewTitle;
+        DateOfReview = dateOfReview;
+        ReviewItems = reviewItems;
+    }
+
+    public string Username { get; set; } 
         public string CustomerCountry { get; set; }
         public string ReviewTitle { get; set; } 
         public DateTime DateOfReview { get; set; } 

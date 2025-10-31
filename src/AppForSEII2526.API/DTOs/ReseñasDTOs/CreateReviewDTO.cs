@@ -2,6 +2,13 @@
 {
     public class CreateReviewDTO
     {
+        public CreateReviewDTO(string reviewTitle, string customerCountry, string? username)
+        {
+            ReviewTitle = reviewTitle;
+            CustomerCountry = customerCountry;
+            Username = username;
+        }
+
         [Required]
         public string ReviewTitle { get; set; }
 
@@ -11,20 +18,8 @@
         // Opcional: nombre de usuario del cliente (si existe en la base de datos)
         public string? Username { get; set; }
 
-        [Required]
-        public List<CreateReviewItemDTO> Items { get; set; } = new();
+        
     }
 
-    public class CreateReviewItemDTO
-    {
-        [Required]
-        public int DeviceId { get; set; }
-
-        [Required]
-        [Range(1, 5)]
-        public int Rating { get; set; }
-
-        [Required]
-        public string Comment { get; set; }
-    }
+    
 }
