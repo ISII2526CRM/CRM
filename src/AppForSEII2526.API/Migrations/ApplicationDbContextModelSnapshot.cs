@@ -4,7 +4,6 @@ using AppForSEII2526.API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -12,11 +11,9 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AppForSEII2526.API.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251008184029_CreateIdentitySchema")]
-    partial class CreateIdentitySchema
+    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -255,9 +252,6 @@ namespace AppForSEII2526.API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("ApplicationUserId")
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<string>("DeliveryAddress")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -285,9 +279,13 @@ namespace AppForSEII2526.API.Migrations
                         .HasPrecision(5, 2)
                         .HasColumnType("float(5)");
 
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("ApplicationUserId");
+                    b.HasIndex("UserId");
 
                     b.HasIndex("RentDeviceDeviceId", "RentDeviceRentId");
 
@@ -553,9 +551,11 @@ namespace AppForSEII2526.API.Migrations
 
             modelBuilder.Entity("AppForSEII2526.API.Models.Rental", b =>
                 {
-                    b.HasOne("AppForSEII2526.API.Models.ApplicationUser", null)
+                    b.HasOne("AppForSEII2526.API.Models.ApplicationUser", "User")
                         .WithMany("Rentals")
-                        .HasForeignKey("ApplicationUserId");
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("AppForSEII2526.API.Models.RentDevice", "RentDevice")
                         .WithMany("Rentals")
@@ -564,6 +564,8 @@ namespace AppForSEII2526.API.Migrations
                         .IsRequired();
 
                     b.Navigation("RentDevice");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("AppForSEII2526.API.Models.Review", b =>
