@@ -12,7 +12,7 @@ using AppForSEII2526.API.Data;
 
 namespace AppForSEII2526.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("GetReviewDetails")]
     [ApiController]
     public class ReviewsController : ControllerBase
     {
@@ -66,7 +66,7 @@ namespace AppForSEII2526.API.Controllers
         }
 
         [HttpPost]
-        [Route("Create")]
+        [Route("CreateReview")]
         [ProducesResponseType((int)HttpStatusCode.Created)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         public async Task<ActionResult> Create([FromBody] CreateReviewDTO input)

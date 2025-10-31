@@ -10,15 +10,19 @@ namespace AppForSEII2526.API.DTOs.ReseñasDTOs
             Username = username;
         }
 
-        [Required]
-        public string ReviewTitle { get; set; }
+        [Required(ErrorMessage = "El título de la reseña es obligatorio.")]
+        public string ReviewTitle { get; set; } = string.Empty;
 
-        [Required]
-        public string CustomerCountry { get; set; }
+        // País obligatorio
+        [Required(ErrorMessage = "El país desde donde se hace la reseña es obligatorio.")]
+        public string CustomerCountry { get; set; } = string.Empty;
 
-        // Opcional: nombre de usuario del cliente (si existe en la base de datos)
+        // Nombre opcional
         public string? Username { get; set; }
 
+        // Lista obligatoria de ítems (al menos 1)
+        [Required(ErrorMessage = "Se requiere al menos un dispositivo en la reseña.")]
+        [MinLength(1, ErrorMessage = "Se requiere al menos un dispositivo en la reseña.")]
         public List<ReviewItemDTO> ReviewItems { get; set; }
 
         public CreateReviewDTO()

@@ -14,6 +14,11 @@ using System.ComponentModel.DataAnnotations;
         ReviewItems = reviewItems;
     }
 
+    public ReviewDTO()
+    {
+        ReviewItems = new List<ReviewItemDTO>();
+    }
+
     public string Username { get; set; } 
         public string CustomerCountry { get; set; }
         public string ReviewTitle { get; set; } 
