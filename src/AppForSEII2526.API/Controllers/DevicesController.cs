@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using AppForSEII2526.API.DTOs;
 using AppForSEII2526.API.DTOs.ReseñasDTOs;
+using AppForSEII2526.API.DTOs.DeviceDTOs;
 
 namespace AppForSEII2526.API.Controllers
 {
@@ -21,7 +22,6 @@ namespace AppForSEII2526.API.Controllers
             _context = context;
             _logger = logger;
         }
-
 
         [HttpGet]
         [Route("[action]")]
@@ -53,6 +53,26 @@ namespace AppForSEII2526.API.Controllers
             .ToListAsync();
         return Ok(devices);
         }
+
+        //El sistema muestra la lista de dispositivos, indicando el nombre, el modelo, la marca, el año, el color y el precio del alquiler.
+        [HttpGet]
+        [Route("[action]")]
+        [ProducesResponseType(typeof(IList<DeviceForRentalDTO>), (int)HttpStatusCode.OK)]
+        public async Task<ActionResult> GetDevicesForRental(string? NameModel, double? priceForRental)
+        {
+            var devices = await _context.Device
+                .Where(d => (string.IsNullOrEmpty(NameModel) || d.Model.NameModel.ToLower() == NameModel.ToLower()) &&
+                            (!priceForRental.HasValue || d.PriceForRent <= priceForRental.Value))
+                .Select(m => new DeviceForRentalDTO(
+                m.Id,
+                m.Brand,
+                m.Color,
+                m.Year,
+                m.Model.NameModel,
+                (decimal)m.PriceForRent
+                ))
+                .ToListAsync();
+            return Ok(devices);
+        }
     }
 }
-
