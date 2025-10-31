@@ -3,9 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-    public class ReviewDetailsDTO
+    public class ReviewDTO
     {
-    public ReviewDetailsDTO(string username, string customerCountry, string reviewTitle, DateTime dateOfReview, IList<ReviewItemDetailsDTO> reviewItems)
+    public ReviewDTO(string username, string customerCountry, string reviewTitle, DateTime dateOfReview, IList<ReviewItemDTO> reviewItems)
     {
         Username = username;
         CustomerCountry = customerCountry;
@@ -18,7 +18,7 @@ using System.ComponentModel.DataAnnotations;
         public string CustomerCountry { get; set; }
         public string ReviewTitle { get; set; } 
         public DateTime DateOfReview { get; set; } 
-        public IList<ReviewItemDetailsDTO> ReviewItems { get; set; } = new List<ReviewItemDetailsDTO>();
+        public IList<ReviewItemDTO> ReviewItems { get; set; } = new List<ReviewItemDTO>();
     }
 
 
