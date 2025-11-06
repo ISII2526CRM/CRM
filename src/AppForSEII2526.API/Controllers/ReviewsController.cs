@@ -28,7 +28,7 @@ namespace AppForSEII2526.API.Controllers
         }
 
         [HttpGet]
-        [Route("{id}")]
+        [Route("[action]ReviewDeatails")]
         [ProducesResponseType(typeof(ReviewDTO), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<ActionResult<ReviewDTO>> GetReviewDetails(int id)
@@ -66,7 +66,7 @@ namespace AppForSEII2526.API.Controllers
         }
 
         [HttpPost]
-        [Route("[action]")]
+        [Route("[action]Review")]
         [ProducesResponseType(typeof (ReviewDTO), (int)HttpStatusCode.Created)]
         [ProducesResponseType(typeof(ValidationProblemDetails), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.Conflict)]
