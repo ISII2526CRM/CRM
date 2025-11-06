@@ -6,11 +6,28 @@ namespace AppForSEII2526.API.Models
 	[Index(nameof(Name), IsUnique = true)]
 	public class Device
 	{
-		public Device()
-		{
-		}
+        public Device()
+        {
+        }
+        public Device(Model model, string name, string brand, string color, double priceForPurchase, double priceForRent, int quantityForPurchase, int quantityForRent, int year)
+        {
+            Model = model;
+            Name = name;
+            Brand = brand;
+            Color = color;
+            PriceForPurchase = priceForPurchase;
+            PriceForRent = priceForRent;
+            QuantityForPurchase = quantityForPurchase;
+            QuantityForRent = quantityForRent;
+            Year = year;
 
-		public Device(int id, Model model, string name, string brand, string color, double priceForPurchase, double priceForRent, 
+            // Inicializar listas para evitar NullReferenceException en las pruebas
+            PurchaseItems = new List<PurchaseItem>();
+            RentedDevices = new List<RentDevice>();
+            ReviewItems = new List<ReviewItem>();
+        }
+
+        public Device(int id, Model model, string name, string brand, string color, double priceForPurchase, double priceForRent, 
 			int quantityForPurchase, int quantityForRent, IList<PurchaseItem> purchaseItems, IList<RentDevice> rentedDevices, IList<ReviewItem> reviewItems, int year) : 
 			this(model, name, brand, color, priceForPurchase, priceForRent, quantityForPurchase, quantityForRent, purchaseItems, rentedDevices ,reviewItems, year)
 		{
@@ -76,5 +93,8 @@ namespace AppForSEII2526.API.Models
 		public IList<ReviewItem> ReviewItems { get; set; }
 
 		public int Year { get; set; }
+
+    
+        
     }
 }
