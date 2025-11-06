@@ -66,7 +66,7 @@ namespace AppForSEII2526.API.Controllers
         }
 
         [HttpPost]
-        [Route("[action]")]
+        [Route("[action]Review")]
         [ProducesResponseType(typeof (ReviewDTO), (int)HttpStatusCode.Created)]
         [ProducesResponseType(typeof(ValidationProblemDetails), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.Conflict)]
