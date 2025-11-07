@@ -30,7 +30,6 @@ namespace AppForSEII2526.UT.DevicesController_test
             };
 
             _context.AddRange(models);
-            // --- ¡AQUÍ ESTÁ LA CORRECCIÓN! ---
             _context.AddRange(devices); // Debe ser AddRange, no Add
             _context.SaveChanges();
         }
@@ -42,25 +41,135 @@ namespace AppForSEII2526.UT.DevicesController_test
         public async Task GetDeviceForReviewFiltro_SinFiltros_DevuelveTodosLosDevices()
         {
             // Arrange
-            // Creamos un Logger "falso" (Mock)
             var mockLogger = new Mock<ILogger<DevicesController>>();
 
-            // Creamos el controlador, pasándole nuestro contexto de BBDD y el logger
+                // Creamos el controlador, pasándole nuestro contexto de BBDD y el logger
             var controller = new DevicesController(_context, mockLogger.Object);
 
             // Act
-            // Llamamos al método con los filtros en null
+                // Llamamos al método con los filtros en null
             var result = await controller.GetDeviceForReviewFiltro(Brand: null, Year: null);
 
             // Assert
-            // 1. Verificamos que el resultado es un 'OkObjectResult' (HTTP 200)
+                // 1. Verificamos que el resultado es un 'OkObjectResult' (HTTP 200)
             var okResult = Assert.IsType<OkObjectResult>(result);
 
-            // 2. Verificamos que el valor que contiene es una Lista de DTOs
+                // 2. Verificamos que el valor que contiene es una Lista de DTOs
             var dtos = Assert.IsType<List<DevicesReseñaDTO>>(okResult.Value);
 
-            // 3. Verificamos que la lista tiene 4 elementos (todos los que guardamos)
-            Assert.Equal(4, dtos.Count);
+                // 3. Verificamos que la lista contiene exactamente los 4 devices que insertamos (comparando Brand, Color, Year y Model)
+            var expectedDTOs = new List<DevicesReseñaDTO>()
+            {
+                new DevicesReseñaDTO(1, "Dell",    "Plata",        2023, "ordenador"),
+                new DevicesReseñaDTO(2, "Samsung", "Negro Titanio",2024, "teléfono"),
+                new DevicesReseñaDTO(3, "Logitech","Grafito",      2023, "Teclado"),
+                new DevicesReseñaDTO(4, "Logitech","Negro",        2022, "Ratón")
+            };
+
+            var orderedExpected = expectedDTOs.OrderBy(d => d.Id).ToList();
+            var orderedActual = dtos.OrderBy(d => d.Id).ToList();
+
+            Assert.Equal(orderedExpected, orderedActual);
+        }
+
+
+        [Fact]
+        [Trait("Database", "Sqlite")]
+        [Trait("LevelTesting", "Unit Testing")]
+        public async Task GetDeviceForReviewFiltro_FiltroSoloPorBrand_DevuelveDevicesCorrectos()
+        {
+            // Arrange 
+            var mockLogger = new Mock<ILogger<DevicesController>>();
+            var controller = new DevicesController(_context, mockLogger.Object);
+
+                // Definimos los DTOs que esperamos (solo los Logitech)
+            var expectedDTOs = new List<DevicesReseñaDTO>()
+            {
+                new DevicesReseñaDTO(3, "Logitech", "Grafito", 2023, "Teclado"),
+                new DevicesReseñaDTO(4, "Logitech", "Negro", 2022, "Ratón")
+            };
+            var orderedExpectedDTOs = expectedDTOs.OrderBy(d => d.Id).ToList();
+
+            // Act 
+                // Llamamos al método filtrando solo por Brand
+            var result = await controller.GetDeviceForReviewFiltro(Brand: "Logitech", Year: null);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var actualDTOs = Assert.IsType<List<DevicesReseñaDTO>>(okResult.Value);
+
+                // Comprobamos la cuenta
+            Assert.Equal(2, actualDTOs.Count);
+
+                // Comprobamos los valores
+            var orderedActualDTOs = actualDTOs.OrderBy(d => d.Id).ToList();
+            Assert.Equal(orderedExpectedDTOs, orderedActualDTOs);
+        }
+
+        [Fact]
+        [Trait("Database", "Sqlite")]
+        [Trait("LevelTesting", "Unit Testing")]
+        public async Task GetDeviceForReviewFiltro_FiltroSoloPorYear_DevuelveDevicesCorrectos()
+        {
+            // --- Arrange ---
+            var mockLogger = new Mock<ILogger<DevicesController>>();
+            var controller = new DevicesController(_context, mockLogger.Object);
+
+            // Definimos los DTOs que esperamos (solo los de 2023)
+            var expectedDTOs = new List<DevicesReseñaDTO>()
+            {
+                new DevicesReseñaDTO(1, "Dell", "Plata", 2023, "ordenador"),
+                new DevicesReseñaDTO(3, "Logitech", "Grafito", 2023, "Teclado")
+            };
+            var orderedExpectedDTOs = expectedDTOs.OrderBy(d => d.Id).ToList();
+
+            // --- Act ---
+            // Llamamos al método filtrando solo por Year
+            var result = await controller.GetDeviceForReviewFiltro(Brand: null, Year: 2023);
+
+            // --- Assert ---
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var actualDTOs = Assert.IsType<List<DevicesReseñaDTO>>(okResult.Value);
+
+            // Comprobamos la cuenta
+            Assert.Equal(2, actualDTOs.Count);
+
+            // Comprobamos los valores
+            var orderedActualDTOs = actualDTOs.OrderBy(d => d.Id).ToList();
+            Assert.Equal(orderedExpectedDTOs, orderedActualDTOs);
+        }
+
+
+        [Fact]
+        [Trait("Database", "Sqlite")]
+        [Trait("LevelTesting", "Unit Testing")]
+        public async Task GetDeviceForReviewFiltro_FiltroPorBrandYYear_DevuelveDeviceCorrecto()
+        {
+            // --- Arrange ---
+            var mockLogger = new Mock<ILogger<DevicesController>>();
+            var controller = new DevicesController(_context, mockLogger.Object);
+
+            // Definimos el DTO que esperamos (solo el Logitech de 2023)
+            var expectedDTOs = new List<DevicesReseñaDTO>()
+            {
+                new DevicesReseñaDTO(3, "Logitech", "Grafito", 2023, "Teclado")
+            };
+            var orderedExpectedDTOs = expectedDTOs.OrderBy(d => d.Id).ToList();
+
+            // --- Act ---
+            // Llamamos al método filtrando por ambos
+            var result = await controller.GetDeviceForReviewFiltro(Brand: "Logitech", Year: 2023);
+
+            // --- Assert ---
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var actualDTOs = Assert.IsType<List<DevicesReseñaDTO>>(okResult.Value);
+
+            // Comprobamos la cuenta
+            Assert.Equal(1, actualDTOs.Count);
+
+            // Comprobamos los valores
+            var orderedActualDTOs = actualDTOs.OrderBy(d => d.Id).ToList();
+            Assert.Equal(orderedExpectedDTOs, orderedActualDTOs);
         }
     }
 }
