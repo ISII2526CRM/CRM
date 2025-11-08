@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Xunit;
 
 namespace AppForSEII2526.UT.DevicesController_test
 {
@@ -111,11 +112,11 @@ namespace AppForSEII2526.UT.DevicesController_test
         [Trait("LevelTesting", "Unit Testing")]
         public async Task GetDeviceForReviewFiltro_FiltroSoloPorYear_DevuelveDevicesCorrectos()
         {
-            // --- Arrange ---
+            // Arrange 
             var mockLogger = new Mock<ILogger<DevicesController>>();
             var controller = new DevicesController(_context, mockLogger.Object);
 
-            // Definimos los DTOs que esperamos (solo los de 2023)
+                // Definimos los DTOs que esperamos (solo los de 2023)
             var expectedDTOs = new List<DevicesReseñaDTO>()
             {
                 new DevicesReseñaDTO(1, "Dell", "Plata", 2023, "ordenador"),
@@ -123,18 +124,18 @@ namespace AppForSEII2526.UT.DevicesController_test
             };
             var orderedExpectedDTOs = expectedDTOs.OrderBy(d => d.Id).ToList();
 
-            // --- Act ---
-            // Llamamos al método filtrando solo por Year
+            // Act 
+                // Llamamos al método filtrando solo por Year
             var result = await controller.GetDeviceForReviewFiltro(Brand: null, Year: 2023);
 
-            // --- Assert ---
+            // Assert 
             var okResult = Assert.IsType<OkObjectResult>(result);
             var actualDTOs = Assert.IsType<List<DevicesReseñaDTO>>(okResult.Value);
 
-            // Comprobamos la cuenta
+                // Comprobamos el número de elementos
             Assert.Equal(2, actualDTOs.Count);
 
-            // Comprobamos los valores
+                // Comprobamos los valores
             var orderedActualDTOs = actualDTOs.OrderBy(d => d.Id).ToList();
             Assert.Equal(orderedExpectedDTOs, orderedActualDTOs);
         }
@@ -145,29 +146,29 @@ namespace AppForSEII2526.UT.DevicesController_test
         [Trait("LevelTesting", "Unit Testing")]
         public async Task GetDeviceForReviewFiltro_FiltroPorBrandYYear_DevuelveDeviceCorrecto()
         {
-            // --- Arrange ---
+            // Arrange 
             var mockLogger = new Mock<ILogger<DevicesController>>();
             var controller = new DevicesController(_context, mockLogger.Object);
 
-            // Definimos el DTO que esperamos (solo el Logitech de 2023)
+                // Definimos el DTO que esperamos (solo el Logitech de 2023)
             var expectedDTOs = new List<DevicesReseñaDTO>()
             {
                 new DevicesReseñaDTO(3, "Logitech", "Grafito", 2023, "Teclado")
             };
             var orderedExpectedDTOs = expectedDTOs.OrderBy(d => d.Id).ToList();
 
-            // --- Act ---
-            // Llamamos al método filtrando por ambos
+            // Act 
+                // Llamamos al método filtrando por ambos
             var result = await controller.GetDeviceForReviewFiltro(Brand: "Logitech", Year: 2023);
 
-            // --- Assert ---
+            // Assert 
             var okResult = Assert.IsType<OkObjectResult>(result);
             var actualDTOs = Assert.IsType<List<DevicesReseñaDTO>>(okResult.Value);
 
-            // Comprobamos la cuenta
+                // Comprobamos el número de elementos
             Assert.Equal(1, actualDTOs.Count);
 
-            // Comprobamos los valores
+                // Comprobamos los valores
             var orderedActualDTOs = actualDTOs.OrderBy(d => d.Id).ToList();
             Assert.Equal(orderedExpectedDTOs, orderedActualDTOs);
         }
