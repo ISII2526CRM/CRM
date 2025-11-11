@@ -141,7 +141,36 @@ namespace AppForSEII2526.UT.ReseñasController_test
             Assert.Empty(dto.ReviewItems);
         }
 
+        [Fact]
+        public async Task GetReviewDetails_UserIsNull_ReturnsOkWithNullUsername()
+        {
+            // Arrange
+            var mockLogger = new Mock<ILogger<ReviewsController>>();
+            var controller = new ReviewsController(_context, mockLogger.Object);
 
+            // Creamos una Review pero User es null (COMPORTAMIENTO ESPERADO)
+            var review = new Review
+            {
+                User = null, // <-- Dato nulo
+                ReviewTitle = "Reseña huérfana",
+                CustomerCountry = "UK",
+                DateOfReview = DateTime.Now
+            };
+            _context.Add(review);
+            _context.SaveChanges();
+
+            // Act
+            var actionResult = await controller.GetReviewDetails(review.ReviewId);
+
+            // Assert
+            // 1. Verificamos que devuelve OK
+            var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
+            var dto = Assert.IsType<ReviewDetailsDTO>(okResult.Value);
+
+            // 2. Verificamos que el Username es null (que es el comportamiento opcional correcto)
+            Assert.Null(dto.Username);
+            Assert.Equal("Reseña huérfana", dto.ReviewTitle); // Los otros datos sí están
+        }
 
     }
 }

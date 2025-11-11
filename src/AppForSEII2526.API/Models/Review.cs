@@ -12,9 +12,8 @@
         public string CustomerCountry { get; set; }
 
         // 🔹 Clave foránea al usuario que creó la review
-        [Required]
         [ForeignKey(nameof(User))]
-        public string UserId { get; set; }
+        public string? UserId { get; set; }
 
         // 🔹 Propiedad de navegación al usuario
         public ApplicationUser? User { get; set; }
@@ -29,7 +28,9 @@
         public IList<ReviewItem> ReviewItems { get; set; } = new List<ReviewItem>();
 
         // 🔹 Constructores
-        public Review() { }
+        public Review() { 
+
+        }
 
         public Review(string reviewTitle, string customerCountry, string userId, DateTime dateOfReview, int overallRating, IList<ReviewItem> reviewItems)
         {
