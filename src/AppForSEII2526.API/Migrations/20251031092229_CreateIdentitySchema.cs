@@ -273,16 +273,17 @@ namespace AppForSEII2526.API.Migrations
                     TotalPrice = table.Column<double>(type: "float(5)", precision: 5, scale: 2, nullable: false),
                     RentDeviceDeviceId = table.Column<int>(type: "int", nullable: false),
                     RentDeviceRentId = table.Column<int>(type: "int", nullable: false),
-                    ApplicationUserId = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Rental", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Rental_AspNetUsers_ApplicationUserId",
-                        column: x => x.ApplicationUserId,
+                        name: "FK_Rental_AspNetUsers_UserId",
+                        column: x => x.UserId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Rental_RentDevice_RentDeviceDeviceId_RentDeviceRentId",
                         columns: x => new { x.RentDeviceDeviceId, x.RentDeviceRentId },
@@ -443,14 +444,14 @@ namespace AppForSEII2526.API.Migrations
                 column: "PurchaseId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Rental_ApplicationUserId",
-                table: "Rental",
-                column: "ApplicationUserId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Rental_RentDeviceDeviceId_RentDeviceRentId",
                 table: "Rental",
                 columns: new[] { "RentDeviceDeviceId", "RentDeviceRentId" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Rental_UserId",
+                table: "Rental",
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Review_UserId",
