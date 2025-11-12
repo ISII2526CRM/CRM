@@ -29,9 +29,9 @@ namespace AppForSEII2526.API.Controllers
 
         [HttpGet]
         [Route("{id}")]
-        [ProducesResponseType(typeof(ReviewDetailsDTO), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ReviewDTO), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        public async Task<ActionResult<ReviewDetailsDTO>> GetReviewDetails(int id)
+        public async Task<ActionResult<ReviewDTO>> GetReviewDetails(int id)
         {
             var reviewDetails = await _context.Review
                 .Include(r => r.User)
@@ -41,7 +41,7 @@ namespace AppForSEII2526.API.Controllers
                 .Where(r => r.ReviewId == id)
 
                 // 2. Proyectamos el resultado al DTO
-                .Select(r => new ReviewDetailsDTO
+                .Select(r => new ReviewDTO
                 {
                     Username = r.User.UserName,
                     CustomerCountry = r.CustomerCountry,
@@ -49,7 +49,7 @@ namespace AppForSEII2526.API.Controllers
                     DateOfReview = r.DateOfReview,
 
                     // 3. Mapeamos la sub-lista de ítems
-                    ReviewItems = r.ReviewItems.Select(item => new ReviewItemDetailsDTO
+                    ReviewItems = r.ReviewItems.Select(item => new ReviewItemDTO
                     {
                         DeviceName = item.Device.Name,
                         DeviceModel = item.Device.Model.NameModel,

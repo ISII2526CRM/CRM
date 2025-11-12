@@ -90,7 +90,7 @@ namespace AppForSEII2526.UT.ReseñasController_test
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-            var dto = Assert.IsType<ReviewDetailsDTO>(okResult.Value);
+            var dto = Assert.IsType<ReviewDTO>(okResult.Value);
 
             Assert.Equal(user.UserName, dto.Username);
             Assert.Equal("España", dto.CustomerCountry);
@@ -134,7 +134,7 @@ namespace AppForSEII2526.UT.ReseñasController_test
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-            var dto = Assert.IsType<ReviewDetailsDTO>(okResult.Value);
+            var dto = Assert.IsType<ReviewDTO>(okResult.Value);
 
             // Verificamos que la lista existe, pero está vacía
             Assert.NotNull(dto.ReviewItems);
@@ -165,7 +165,7 @@ namespace AppForSEII2526.UT.ReseñasController_test
             // Assert
             // 1. Verificamos que devuelve OK
             var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-            var dto = Assert.IsType<ReviewDetailsDTO>(okResult.Value);
+            var dto = Assert.IsType<ReviewDTO>(okResult.Value);
 
             // 2. Verificamos que el Username es null (que es el comportamiento opcional correcto)
             Assert.Null(dto.Username);
