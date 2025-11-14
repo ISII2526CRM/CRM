@@ -69,7 +69,7 @@ namespace AppForSEII2526.API.Controllers
                 m.Color,
                 m.Year,
                 m.Model.NameModel,
-                (decimal)m.PriceForRent
+                m.PriceForRent
                 ))
                 .ToListAsync();
             return Ok(devices);

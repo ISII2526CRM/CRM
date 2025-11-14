@@ -66,20 +66,6 @@ namespace AppForSEII2526.API.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "RentDevice",
-                columns: table => new
-                {
-                    DeviceId = table.Column<int>(type: "int", nullable: false),
-                    RentId = table.Column<int>(type: "int", nullable: false),
-                    Price = table.Column<double>(type: "float", nullable: false),
-                    Quantity = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_RentDevice", x => new { x.DeviceId, x.RentId });
-                });
-
-            migrationBuilder.CreateTable(
                 name: "AspNetRoleClaims",
                 columns: table => new
                 {
@@ -210,6 +196,30 @@ namespace AppForSEII2526.API.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Rental",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    DeliveryAddress = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    PaymentMethod = table.Column<int>(type: "int", nullable: false),
+                    RentalDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    RentalDateFrom = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    RentalDateTo = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    TotalPrice = table.Column<double>(type: "float(5)", precision: 5, scale: 2, nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Rental", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Rental_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Review",
                 columns: table => new
                 {
@@ -260,63 +270,6 @@ namespace AppForSEII2526.API.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Rental",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    DeliveryAddress = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    PaymentMethod = table.Column<int>(type: "int", nullable: false),
-                    RentalDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    RentalDateFrom = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    RentalDateTo = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    TotalPrice = table.Column<double>(type: "float(5)", precision: 5, scale: 2, nullable: false),
-                    RentDeviceDeviceId = table.Column<int>(type: "int", nullable: false),
-                    RentDeviceRentId = table.Column<int>(type: "int", nullable: false),
-                    ApplicationUserId = table.Column<string>(type: "nvarchar(450)", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Rental", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Rental_AspNetUsers_ApplicationUserId",
-                        column: x => x.ApplicationUserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Rental_RentDevice_RentDeviceDeviceId_RentDeviceRentId",
-                        columns: x => new { x.RentDeviceDeviceId, x.RentDeviceRentId },
-                        principalTable: "RentDevice",
-                        principalColumns: new[] { "DeviceId", "RentId" },
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "DeviceRentDevice",
-                columns: table => new
-                {
-                    DevicesId = table.Column<int>(type: "int", nullable: false),
-                    RentedDevicesDeviceId = table.Column<int>(type: "int", nullable: false),
-                    RentedDevicesRentId = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_DeviceRentDevice", x => new { x.DevicesId, x.RentedDevicesDeviceId, x.RentedDevicesRentId });
-                    table.ForeignKey(
-                        name: "FK_DeviceRentDevice_Device_DevicesId",
-                        column: x => x.DevicesId,
-                        principalTable: "Device",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_DeviceRentDevice_RentDevice_RentedDevicesDeviceId_RentedDevicesRentId",
-                        columns: x => new { x.RentedDevicesDeviceId, x.RentedDevicesRentId },
-                        principalTable: "RentDevice",
-                        principalColumns: new[] { "DeviceId", "RentId" },
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "PurchaseItem",
                 columns: table => new
                 {
@@ -339,6 +292,32 @@ namespace AppForSEII2526.API.Migrations
                         name: "FK_PurchaseItem_Purchase_PurchaseId",
                         column: x => x.PurchaseId,
                         principalTable: "Purchase",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "RentDevice",
+                columns: table => new
+                {
+                    DeviceId = table.Column<int>(type: "int", nullable: false),
+                    RentalId = table.Column<int>(type: "int", nullable: false),
+                    Price = table.Column<double>(type: "float", nullable: false),
+                    Quantity = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RentDevice", x => new { x.DeviceId, x.RentalId });
+                    table.ForeignKey(
+                        name: "FK_RentDevice_Device_DeviceId",
+                        column: x => x.DeviceId,
+                        principalTable: "Device",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_RentDevice_Rental_RentalId",
+                        column: x => x.RentalId,
+                        principalTable: "Rental",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -422,11 +401,6 @@ namespace AppForSEII2526.API.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_DeviceRentDevice_RentedDevicesDeviceId_RentedDevicesRentId",
-                table: "DeviceRentDevice",
-                columns: new[] { "RentedDevicesDeviceId", "RentedDevicesRentId" });
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Model_NameModel",
                 table: "Model",
                 column: "NameModel",
@@ -443,14 +417,14 @@ namespace AppForSEII2526.API.Migrations
                 column: "PurchaseId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Rental_ApplicationUserId",
+                name: "IX_Rental_UserId",
                 table: "Rental",
-                column: "ApplicationUserId");
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Rental_RentDeviceDeviceId_RentDeviceRentId",
-                table: "Rental",
-                columns: new[] { "RentDeviceDeviceId", "RentDeviceRentId" });
+                name: "IX_RentDevice_RentalId",
+                table: "RentDevice",
+                column: "RentalId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Review_UserId",
@@ -487,13 +461,10 @@ namespace AppForSEII2526.API.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "DeviceRentDevice");
-
-            migrationBuilder.DropTable(
                 name: "PurchaseItem");
 
             migrationBuilder.DropTable(
-                name: "Rental");
+                name: "RentDevice");
 
             migrationBuilder.DropTable(
                 name: "ReviewItem");
@@ -505,7 +476,7 @@ namespace AppForSEII2526.API.Migrations
                 name: "Purchase");
 
             migrationBuilder.DropTable(
-                name: "RentDevice");
+                name: "Rental");
 
             migrationBuilder.DropTable(
                 name: "Device");

@@ -1,6 +1,7 @@
 ﻿namespace AppForSEII2526.API.Models
 {
     using System.ComponentModel.DataAnnotations;
+    using System.ComponentModel.DataAnnotations.Schema;
 
     public class Rental
     {
@@ -9,21 +10,17 @@
         {
         }
 
-        //Constructor con parametros sin id
-        public Rental(string deliveryAddress, PaymentMethodType paymentMethod, DateTime rentalDate, DateTime rentalDateFrom, DateTime rentalDateTo, double totalPrice)
+        public Rental(int id, string deliveryAddress, PaymentMethodType paymentMethod, DateTime rentalDate, DateTime rentalDateFrom, DateTime rentalDateTo, double totalPrice, IList<RentDevice> rentDevices, string? userId)
         {
+            Id = id;
             DeliveryAddress = deliveryAddress;
             PaymentMethod = paymentMethod;
             RentalDate = rentalDate;
             RentalDateFrom = rentalDateFrom;
             RentalDateTo = rentalDateTo;
-            TotalPrice = totalPrice;
-        }
-
-        //Constructor con parametros con id
-        public Rental(int id, string deliveryAddress, PaymentMethodType paymentMethod, DateTime rentalDate, DateTime rentalDateFrom, DateTime rentalDateTo, double totalPrice) : this(deliveryAddress, paymentMethod, rentalDate, rentalDateFrom, rentalDateTo, totalPrice)
-        {
-            Id = id;
+            TotalPrice = rentDevices.Sum(rd => rd.Price * (rentalDateTo - rentalDateFrom).Days);
+            RentDevices = rentDevices;
+            UserId = userId;
         }
 
         [Required]
@@ -31,10 +28,6 @@
         public string DeliveryAddress { get; set; }
 
         public int Id { get; set; }
-
-        //[Required]
-        //[StringLength(50, ErrorMessage = "El campo Name no puede ser mayor a 50 caracteres ni menor de 1 caracter.", MinimumLength=1)]
-        //public string Name { get; set; }
 
         [Required]
         public PaymentMethodType PaymentMethod { get; set; }
@@ -51,19 +44,18 @@
         [DisplayFormat(DataFormatString = "{0:dd/MM/yyyy}", ApplyFormatInEditMode = true)]
         public DateTime RentalDateTo { get; set; }
 
-        //[Required]
-        //[StringLength(50, ErrorMessage = "El campo Surname no puede ser mayor a 50 caracteres ni menor de 1 caracter.", MinimumLength = 1)]
-        //public string Surname { get; set; }
-
         [DataType(DataType.Currency)]
         [Display(Name = "Precio Total")]
         [Precision(5,2)]
         public double TotalPrice { get; set; }
 
         //Relacion uno a muchos con RentDevice
-        public RentDevice RentDevice { get; set; }
+        public IList<RentDevice> RentDevices { get; set; }
+
+        public string? UserId { get; set; }
 
         //Relacion uno a muchos con ApplicationUser
+        [ForeignKey(nameof(UserId))]
         public ApplicationUser User { get; set; }
     }
 

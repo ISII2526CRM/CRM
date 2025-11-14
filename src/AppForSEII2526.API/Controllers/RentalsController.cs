@@ -1,6 +1,10 @@
-﻿using AppForSEII2526.API.DTOs.RentalDTOs;
+﻿using System.Net;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using AppForSEII2526.API.DTOs.RentalDTOs;
 
 namespace AppForSEII2526.API.Controllers
 {
@@ -27,39 +31,50 @@ namespace AppForSEII2526.API.Controllers
         {
             if (_context.Rental == null)
             {
-                _logger.LogError("Error: La tabla Rental no existe");
+                _logger.LogError("Error: La tabla rental no existe.");
                 return NotFound();
             }
+            var test = new Rental();
 
-            var rentalDetails = await _context.Rental
-                .Include(r => r.RentalItems)
-                    .ThenInclude(ri => ri.Device)
+
+            var rental = await _context.Rental
+                .Include(r => r.User)
+                .Include(r => r.RentDevices)
+                    .ThenInclude(rd => rd.Device)
                         .ThenInclude(d => d.Model)
-                .Where(r => r.RentalId == id)
-                .Select(r => new RentalDetailsDTO
+                .Where(r => r.Id == id)
+                /*.Select(r => new RentalDetailsDTO
                 {
-                    Id = r.RentalId,
-                    CustomerName = r.CustomerName,
-                    CustomerSurname = r.CustomerSurname,
+                    Id = r.Id,
+                    Name = r.User.Name,
+                    Surname = r.User.Surname,
                     DeliveryAddress = r.DeliveryAddress,
                     RentalDate = r.RentalDate,
-                    TotalPrice = r.TotalPrice,
-                    RentalPeriodDays = r.RentalPeriodDays,
-                    RentalItems = r.RentalItems.Select(item => new RentalItemDTO
+                    TotalPrice = (decimal)r.TotalPrice,
+                    RentalPeriodDays = (r.RentalDateTo - r.RentalDateFrom).Days,
+                    RentalItems = r.RentDevices.Select(rd => new RentDeviceDTO
                     {
-                        DeviceModel = item.Device.Model.NameModel,
-                        PricePerDay = item.PricePerDay,
-                        Quantity = item.Quantity
+                        DeviceModel = rd.Device.Model.NameModel,
+                        PricePerDay = (decimal)rd.Price,
+                        Quantity = rd.Quantity
                     }).ToList()
                 })
+                .FirstOrDefaultAsync();*/
+
+                .Select(r => new RentalDetailsDTO(r.Id, r.User.Name, r.User.Surname,
+                    r.DeliveryAddress, r.RentalDate,
+                    r.RentalDateFrom, r.RentalDateTo,
+                    r.RentDevices
+                        .Select(rd => new RentDeviceDTO(rd.Device.Model.NameModel,
+                                rd.Device.PriceForRent, rd.Quantity)).ToList<RentDeviceDTO>()))
                 .FirstOrDefaultAsync();
 
-            if (rentalDetails == null)
+            if (rental == null)
             {
                 _logger.LogWarning($"No se encontró ningún alquiler con el ID {id}.");
                 return NotFound($"No se encontró ningún alquiler con el ID {id}.");
             }
-            return Ok(rentalDetails);
+            return Ok(rental);
         }
 
 
