@@ -1,4 +1,6 @@
-﻿
+﻿using AppForSEII2526.API.Models;
+using System.Drawing.Drawing2D;
+
 namespace AppForSEII2526.API.DTOs.RentalDTOs
 {
     public class RentDeviceDTO
@@ -26,6 +28,33 @@ namespace AppForSEII2526.API.DTOs.RentalDTOs
         public override int GetHashCode()
         {
             return HashCode.Combine(DeviceModel, PricePerDay, Quantity);
+        }
+    }
+
+    public class RentDevicePostDTO
+    {
+        public RentDevicePostDTO() { }
+        public RentDevicePostDTO(string deviceModel, string brand, double pricePerDay)
+        {
+            DeviceModel = deviceModel;
+            Brand = brand;
+            PricePerDay = pricePerDay;
+        }
+        public string DeviceModel { get; set; }
+        public string Brand { get; set; }
+        public double PricePerDay { get; set; }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is RentDevicePostDTO dTO &&
+                   DeviceModel == dTO.DeviceModel &&
+                   Brand == dTO.Brand &&
+                   PricePerDay == dTO.PricePerDay;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(DeviceModel, Brand, PricePerDay);
         }
     }
 }

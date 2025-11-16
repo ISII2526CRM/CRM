@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AppForSEII2526.API.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251031092229_CreateIdentitySchema")]
+    [Migration("20251116103919_CreateIdentitySchema")]
     partial class CreateIdentitySchema
     {
         /// <inheritdoc />
@@ -32,6 +32,9 @@ namespace AppForSEII2526.API.Migrations
 
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
+
+                    b.Property<string>("Address")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
@@ -233,7 +236,7 @@ namespace AppForSEII2526.API.Migrations
                     b.Property<int>("DeviceId")
                         .HasColumnType("int");
 
-                    b.Property<int>("RentId")
+                    b.Property<int>("RentalId")
                         .HasColumnType("int");
 
                     b.Property<double>("Price")
@@ -242,7 +245,9 @@ namespace AppForSEII2526.API.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
-                    b.HasKey("DeviceId", "RentId");
+                    b.HasKey("DeviceId", "RentalId");
+
+                    b.HasIndex("RentalId");
 
                     b.ToTable("RentDevice");
                 });
@@ -261,12 +266,6 @@ namespace AppForSEII2526.API.Migrations
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<int>("PaymentMethod")
-                        .HasColumnType("int");
-
-                    b.Property<int>("RentDeviceDeviceId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("RentDeviceRentId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("RentalDate")
@@ -289,8 +288,6 @@ namespace AppForSEII2526.API.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("UserId");
-
-                    b.HasIndex("RentDeviceDeviceId", "RentDeviceRentId");
 
                     b.ToTable("Rental");
                 });
@@ -358,24 +355,6 @@ namespace AppForSEII2526.API.Migrations
                     b.HasIndex("ReviewId");
 
                     b.ToTable("ReviewItem");
-                });
-
-            modelBuilder.Entity("DeviceRentDevice", b =>
-                {
-                    b.Property<int>("DevicesId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("RentedDevicesDeviceId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("RentedDevicesRentId")
-                        .HasColumnType("int");
-
-                    b.HasKey("DevicesId", "RentedDevicesDeviceId", "RentedDevicesRentId");
-
-                    b.HasIndex("RentedDevicesDeviceId", "RentedDevicesRentId");
-
-                    b.ToTable("DeviceRentDevice");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -552,6 +531,25 @@ namespace AppForSEII2526.API.Migrations
                     b.Navigation("Purchase");
                 });
 
+            modelBuilder.Entity("AppForSEII2526.API.Models.RentDevice", b =>
+                {
+                    b.HasOne("AppForSEII2526.API.Models.Device", "Device")
+                        .WithMany("RentDevices")
+                        .HasForeignKey("DeviceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AppForSEII2526.API.Models.Rental", "Rental")
+                        .WithMany("RentDevices")
+                        .HasForeignKey("RentalId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Device");
+
+                    b.Navigation("Rental");
+                });
+
             modelBuilder.Entity("AppForSEII2526.API.Models.Rental", b =>
                 {
                     b.HasOne("AppForSEII2526.API.Models.ApplicationUser", "User")
@@ -559,14 +557,6 @@ namespace AppForSEII2526.API.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("AppForSEII2526.API.Models.RentDevice", "RentDevice")
-                        .WithMany("Rentals")
-                        .HasForeignKey("RentDeviceDeviceId", "RentDeviceRentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("RentDevice");
 
                     b.Navigation("User");
                 });
@@ -599,21 +589,6 @@ namespace AppForSEII2526.API.Migrations
                     b.Navigation("Device");
 
                     b.Navigation("Review");
-                });
-
-            modelBuilder.Entity("DeviceRentDevice", b =>
-                {
-                    b.HasOne("AppForSEII2526.API.Models.Device", null)
-                        .WithMany()
-                        .HasForeignKey("DevicesId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("AppForSEII2526.API.Models.RentDevice", null)
-                        .WithMany()
-                        .HasForeignKey("RentedDevicesDeviceId", "RentedDevicesRentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -680,6 +655,8 @@ namespace AppForSEII2526.API.Migrations
                 {
                     b.Navigation("PurchaseItems");
 
+                    b.Navigation("RentDevices");
+
                     b.Navigation("ReviewItems");
                 });
 
@@ -693,9 +670,9 @@ namespace AppForSEII2526.API.Migrations
                     b.Navigation("PurchaseItems");
                 });
 
-            modelBuilder.Entity("AppForSEII2526.API.Models.RentDevice", b =>
+            modelBuilder.Entity("AppForSEII2526.API.Models.Rental", b =>
                 {
-                    b.Navigation("Rentals");
+                    b.Navigation("RentDevices");
                 });
 
             modelBuilder.Entity("AppForSEII2526.API.Models.Review", b =>
