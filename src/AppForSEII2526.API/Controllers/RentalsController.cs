@@ -1,12 +1,9 @@
-﻿using System;
-using System.Net;
+﻿using System.Net;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using AppForSEII2526.API.DTOs.RentalDTOs;
 
 namespace AppForSEII2526.API.Controllers
@@ -37,6 +34,7 @@ namespace AppForSEII2526.API.Controllers
                 _logger.LogError("Error: La tabla rental no existe.");
                 return NotFound();
             }
+            var test = new Rental();
 
             var rental = await _context.Rental
                 .Include(r => r.User)
