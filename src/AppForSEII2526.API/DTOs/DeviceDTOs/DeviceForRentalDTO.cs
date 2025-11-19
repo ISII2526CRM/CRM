@@ -6,42 +6,44 @@ namespace AppForSEII2526.API.DTOs.DeviceDTOs
 		public DeviceForRentalDTO()
 		{
 		}
-		public DeviceForRentalDTO(int id, string brand, string color, int year, string modelName, double priceForRent)
+		public DeviceForRentalDTO(string nombre, string modelName, string brand, int year, string color, double priceForRent)
 		{
-			Id = id;
-			Brand = brand;
-			Color = color;
-			Year = year;
-			ModelName = modelName;
+            Nombre = nombre;
+            ModelName = modelName;
+            Brand = brand;
+            Year = year;
+            Color = color;
 			PriceForRent = priceForRent;
 		}
 
-		public int Id { get; set; }
-		public string Brand { get; set; }
-		public string Color { get; set; }
-		public int Year { get; set; }
-		public string ModelName { get; set; }
+		public string Nombre { get; set; }
+        public string ModelName { get; set; }
+        public string Brand { get; set; }
+        public int Year { get; set; }
+        public string Color { get; set; }
+		
+		
 
         [Required]
         [DataType(System.ComponentModel.DataAnnotations.DataType.Currency)]
-        [Range(1, float.MaxValue, ErrorMessage = "El precio minimo es 1 ")]
+        [Range(1, double.MaxValue, ErrorMessage = "El precio minimo es 1 ")]
         [Display(Name = "Price For Renting")]
         public double PriceForRent { get; set; }
 
         public override bool Equals(object? obj)
         {
             return obj is DeviceForRentalDTO dTO &&
-                   Id == dTO.Id &&
-                   Brand == dTO.Brand &&
-                   Color == dTO.Color &&
-                   Year == dTO.Year &&
+                   Nombre == dTO.Nombre &&
                    ModelName == dTO.ModelName &&
+                   Brand == dTO.Brand &&
+                   Year == dTO.Year &&
+                   Color == dTO.Color &&
                    PriceForRent == dTO.PriceForRent;
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(Id, Brand, Color, Year, ModelName, PriceForRent);
+            return HashCode.Combine(Nombre, ModelName, Brand, Year, Color, PriceForRent);
         }
     }
 }

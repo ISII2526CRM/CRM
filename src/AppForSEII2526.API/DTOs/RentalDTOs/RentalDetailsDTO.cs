@@ -35,7 +35,7 @@
                    RentalDate == dTO.RentalDate &&
                    TotalPrice == dTO.TotalPrice &&
                    RentalPeriodDays == dTO.RentalPeriodDays &&
-                   EqualityComparer<List<RentDeviceDTO>>.Default.Equals(RentalItems, dTO.RentalItems);
+                   RentalItems.SequenceEqual(dTO.RentalItems);
         }
 
         public override int GetHashCode()

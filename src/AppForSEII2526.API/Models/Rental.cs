@@ -52,6 +52,7 @@
         //Relacion uno a muchos con RentDevice
         public IList<RentDevice> RentDevices { get; set; }
 
+        [Required]
         public string? UserId { get; set; }
 
         //Relacion uno a muchos con ApplicationUser
