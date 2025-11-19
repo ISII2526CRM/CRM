@@ -229,7 +229,7 @@ namespace AppForSEII2526.API.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     ReviewTitle = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     CustomerCountry = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     DateOfReview = table.Column<DateTime>(type: "datetime2", nullable: false),
                     OverallRating = table.Column<int>(type: "int", nullable: false)
                 },
@@ -240,8 +240,7 @@ namespace AppForSEII2526.API.Migrations
                         name: "FK_Review_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(

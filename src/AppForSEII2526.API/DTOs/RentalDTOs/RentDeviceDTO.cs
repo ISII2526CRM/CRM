@@ -1,7 +1,4 @@
-﻿using AppForSEII2526.API.Models;
-using System.Drawing.Drawing2D;
-
-namespace AppForSEII2526.API.DTOs.RentalDTOs
+﻿namespace AppForSEII2526.API.DTOs.RentalDTOs
 {
     public class RentDeviceDTO
     {

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-//Añade una sentencia using para poder usar la clase del controlador que deseas probar.
-using AppForSEII2526.API.Controllers;
+﻿using AppForSEII2526.API.Controllers;
 using AppForSEII2526.API.DTOs.DeviceDTOs;
 
 

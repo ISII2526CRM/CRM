@@ -25,6 +25,6 @@ INSERT INTO [dbo].[Rental] ([Id], [DeliveryAddress], [PaymentMethod], [RentalDat
 INSERT INTO [dbo].[Rental] ([Id], [DeliveryAddress], [PaymentMethod], [RentalDate], [RentalDateFrom], [RentalDateTo], [TotalPrice], [UserId]) VALUES (5, N'Calle 2', 2, N'2002-05-05 00:00:00', N'2000-01-01 00:00:00', N'2000-01-16 00:00:00', 0, N'2')
 SET IDENTITY_INSERT [dbo].[Rental] OFF
 
-INSERT INTO [dbo].[RentDevice] ([DeviceId], [RentalId], [Price], [Quantity]) VALUES (1, 4, 0, 1)
-INSERT INTO [dbo].[RentDevice] ([DeviceId], [RentalId], [Price], [Quantity]) VALUES (5, 5, 0, 1)
-INSERT INTO [dbo].[RentDevice] ([DeviceId], [RentalId], [Price], [Quantity]) VALUES (8, 4, 0, 1)
+INSERT INTO [dbo].[RentDevice] ([DeviceId], [RentalId], [Price], [Quantity]) VALUES (1, 4, 0, 0)
+INSERT INTO [dbo].[RentDevice] ([DeviceId], [RentalId], [Price], [Quantity]) VALUES (5, 5, 0, 0)
+INSERT INTO [dbo].[RentDevice] ([DeviceId], [RentalId], [Price], [Quantity]) VALUES (8, 4, 0, 0)
