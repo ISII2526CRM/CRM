@@ -29,7 +29,6 @@ public class ApplicationUser : IdentityUser
         Name = name;
         Surname = surname;
         UserName = userName;
-        Email = userName;
         Address = address;
     }
 
@@ -39,7 +38,6 @@ public class ApplicationUser : IdentityUser
         Name = name;
         Surname = surname;
         UserName = userName;
-        Email = userName;
     }
 
     [Display(Name = "Name")]
@@ -47,6 +45,8 @@ public class ApplicationUser : IdentityUser
 
     [Display(Name = "Surname")]
     public string? Surname { get; set; }
+
+    public string? Address { get; set; }
 
     public IList<Purchase> Purchases { get; set; } = new List<Purchase>();
     public IList<Rental> Rentals { get; set; } = new List<Rental>();

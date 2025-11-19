@@ -62,10 +62,11 @@ namespace AppForSEII2526.API.Controllers
         {
             //Con el RentDevicePostDTO
 
-            //el payment method es un enum, se debe validar que el valor recibido es valido
-            if (!Enum.IsDefined(typeof(PaymentMethodType), rentalForCreate.PaymentMethod))
+            //el payment method solo puede ser CreditCard o PayPal
+            if (rentalForCreate.PaymentMethod != PaymentMethodType.CreditCard &&
+                rentalForCreate.PaymentMethod != PaymentMethodType.Paypal)
             {
-                ModelState.AddModelError("PaymentMethod", "Error! El método de pago no es válido.");
+                ModelState.AddModelError("PaymentMethod", "Error! El método de pago debe ser 'CreditCard' o 'PayPal'.");
             }
 
             if (rentalForCreate.Quantity <= 0)
@@ -81,6 +82,12 @@ namespace AppForSEII2526.API.Controllers
                 ModelState.AddModelError("User", "Error! No se encontró ningún usuario con el nombre y apellido proporcionados.");
             }
 
+            //la direccion de entrega no puede estar vacia
+            if (string.IsNullOrWhiteSpace(rentalForCreate.DeliveryAddress))
+            {
+                ModelState.AddModelError("DeliveryAddress", "Error! La dirección de entrega no puede estar vacía.");
+            }
+
             if (ModelState.ErrorCount > 0)
                 return BadRequest(new ValidationProblemDetails(ModelState));
             //Crear el rental
@@ -88,9 +95,9 @@ namespace AppForSEII2526.API.Controllers
             {
                 DeliveryAddress = rentalForCreate.DeliveryAddress,
                 PaymentMethod = rentalForCreate.PaymentMethod,
-                RentalDate = DateTime.UtcNow,
-                RentalDateFrom = DateTime.UtcNow,
-                RentalDateTo = DateTime.UtcNow.AddDays(7), //rental period of 7 days
+                RentalDate = DateTime.Today,
+                RentalDateFrom = DateTime.Today,
+                RentalDateTo = DateTime.Today.AddDays(7), //rental period of 7 days
                 UserId = user!.Id
             };
             //Crear los RentDevice
