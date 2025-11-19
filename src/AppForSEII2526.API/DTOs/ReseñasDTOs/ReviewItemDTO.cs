@@ -32,8 +32,6 @@ namespace AppForSEII2526.API.DTOs.ReseñasDTOs
 
         [Range(1, 5, ErrorMessage = "La puntuación debe estar entre 1 y 5.")]
         public int Rating { get; set; }
-
-        [Required(ErrorMessage = "El comentario es obligatorio.")]
         public string? Comment { get; set; }
 
         // Campos informativos para la respuesta GET

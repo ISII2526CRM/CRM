@@ -26,7 +26,9 @@
         public IList<ReviewItem> ReviewItems { get; set; } = new List<ReviewItem>();
 
         // 🔹 Constructores
-        public Review() { }
+        public Review() { 
+
+        }
 
         public Review(string reviewTitle, string customerCountry, string userId, DateTime dateOfReview, int overallRating, IList<ReviewItem> reviewItems)
         {
