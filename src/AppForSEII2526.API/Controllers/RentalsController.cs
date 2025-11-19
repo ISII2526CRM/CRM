@@ -37,6 +37,7 @@ namespace AppForSEII2526.API.Controllers
                 _logger.LogError("Error: La tabla rental no existe.");
                 return NotFound();
             }
+            var test = new Rental();
 
             var rental = await _context.Rental
                 .Include(r => r.User)
