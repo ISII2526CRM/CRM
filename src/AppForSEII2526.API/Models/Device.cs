@@ -6,9 +6,20 @@ namespace AppForSEII2526.API.Models
 	[Index(nameof(Name), IsUnique = true)]
 	public class Device
 	{
-		public Device()
-		{
-		}
+        public Device()
+        {
+        }
+        public Device(Model model, string name, string brand, string color, double priceForPurchase, double priceForRent, int quantityForPurchase, int quantityForRent, int year)
+        {
+            Model = model;
+            Name = name;
+            Brand = brand;
+            Color = color;
+            PriceForPurchase = priceForPurchase;
+            PriceForRent = priceForRent;
+            QuantityForPurchase = quantityForPurchase;
+            QuantityForRent = quantityForRent;
+            Year = year;
 
         public Device(Model model, string name, string brand, string color, double priceForPurchase, double priceForRent, int quantityForPurchase, int quantityForRent, int year)
         {
@@ -94,5 +105,8 @@ namespace AppForSEII2526.API.Models
 		public IList<ReviewItem> ReviewItems { get; set; }
 
 		public int Year { get; set; }
+
+    
+        
     }
 }

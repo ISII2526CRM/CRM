@@ -106,8 +106,8 @@ namespace AppForSEII2526.API.Controllers
                 user = await _context.ApplicationUser.FirstOrDefaultAsync(u => u.UserName == input.Username);
                 if (user == null)
                 {
-                    
-                    _logger.LogInformation("Usuario proporcionado en la reseña no existe: {Username}. La reseña se creará sin usuario asociado.", input.Username);
+                    // elegir: devolver error en lugar de crear reseña huérfana
+                    return BadRequest($"Usuario '{input.Username}' no existe.");
                 }
             }
 
