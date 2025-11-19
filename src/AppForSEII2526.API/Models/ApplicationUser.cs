@@ -48,6 +48,8 @@ public class ApplicationUser : IdentityUser
     [Display(Name = "Surname")]
     public string? Surname { get; set; }
 
+    [Display(Name = "Address")]
+    public string? Address { get; set; }
     public IList<Purchase> Purchases { get; set; } = new List<Purchase>();
     public IList<Rental> Rentals { get; set; } = new List<Rental>();
     public IList<Review> Reviews { get; set; } = new List<Review>();
