@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using AppForSEII2526.API.DTOs;
 using AppForSEII2526.API.DTOs.ReseñasDTOs;
 using AppForSEII2526.API.DTOs.DeviceDTOs;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace AppForSEII2526.API.Controllers
 {
@@ -61,16 +62,28 @@ namespace AppForSEII2526.API.Controllers
         public async Task<ActionResult> GetDevicesForRental(string? NameModel, double? priceForRental)
         {
             var devices = await _context.Device
-                .Where(d => (string.IsNullOrEmpty(NameModel) || d.Model.NameModel.ToLower() == NameModel.ToLower()) &&
-                            (!priceForRental.HasValue || d.PriceForRent <= priceForRental.Value))
-                .Select(m => new DeviceForRentalDTO(
-                m.Id,
-                m.Brand,
-                m.Color,
-                m.Year,
+                .Include(d => d.Model)
+                .Include(d => d.RentDevices).ThenInclude(rd => rd.Rental)
+
+                .Where(d => d.QuantityForRent > 0 &&
+                (string.IsNullOrEmpty(NameModel) || d.Model.NameModel.Contains(NameModel)) &&
+                (!priceForRental.HasValue || d.PriceForRent == priceForRental))
+
+                .Select(d => new DeviceForRentalDTO(d.Name, d.Model.NameModel, d.Brand, d.Year, d.Color, d.PriceForRent))
+
+                //si la QuantityForRent es menor o igual a 0, el dispositivo no se muestra en la lista.
+                //.Where(d => d.QuantityForRent > 0 &&
+                //(string.IsNullOrEmpty(NameModel) || d.Model.NameModel.ToLower() == NameModel.ToLower()) &&
+                //(!priceForRental.HasValue || d.PriceForRent <= priceForRental.Value))
+
+                /*.Select(m => new DeviceForRentalDTO(
+                m.Name,
                 m.Model.NameModel,
-                (decimal)m.PriceForRent
-                ))
+                m.Brand,
+                m.Year,
+                m.Color,
+                m.PriceForRent
+                ))*/
                 .ToListAsync();
             return Ok(devices);
         }
