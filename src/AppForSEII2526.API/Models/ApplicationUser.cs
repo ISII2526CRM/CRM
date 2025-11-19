@@ -23,6 +23,25 @@ public class ApplicationUser : IdentityUser
         Reviews = reviews;
     }
 
+    public ApplicationUser(string id, string name, string surname, string userName, string address)
+    {
+        Id = id;
+        Name = name;
+        Surname = surname;
+        UserName = userName;
+        Email = userName;
+        Address = address;
+    }
+
+    public ApplicationUser(string id, string name, string surname, string userName)
+    {
+        Id = id;
+        Name = name;
+        Surname = surname;
+        UserName = userName;
+        Email = userName;
+    }
+
     [Display(Name = "Name")]
     public string? Name { get; set; }
 

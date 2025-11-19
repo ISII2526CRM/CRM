@@ -1,6 +1,4 @@
 ﻿using AppForSEII2526.API.DTOs.RentalDTOs;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 
 namespace AppForSEII2526.API.Controllers
 {
@@ -23,45 +21,136 @@ namespace AppForSEII2526.API.Controllers
         [Route("[action]")]
         [ProducesResponseType(typeof(RentalDetailsDTO), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        public async Task<ActionResult<RentalDetailsDTO>> GetRentalDetails(int id)
+        public async Task<ActionResult> GetRentalDetails(int id)
         {
             if (_context.Rental == null)
             {
-                _logger.LogError("Error: La tabla Rental no existe");
+                _logger.LogError("Error: La tabla rental no existe.");
                 return NotFound();
             }
 
-            var rentalDetails = await _context.Rental
-                .Include(r => r.RentalItems)
-                    .ThenInclude(ri => ri.Device)
+            var rental = await _context.Rental
+                .Include(r => r.User)
+                .Include(r => r.RentDevices)
+                    .ThenInclude(rd => rd.Device)
                         .ThenInclude(d => d.Model)
-                .Where(r => r.RentalId == id)
-                .Select(r => new RentalDetailsDTO
-                {
-                    Id = r.RentalId,
-                    CustomerName = r.CustomerName,
-                    CustomerSurname = r.CustomerSurname,
-                    DeliveryAddress = r.DeliveryAddress,
-                    RentalDate = r.RentalDate,
-                    TotalPrice = r.TotalPrice,
-                    RentalPeriodDays = r.RentalPeriodDays,
-                    RentalItems = r.RentalItems.Select(item => new RentalItemDTO
-                    {
-                        DeviceModel = item.Device.Model.NameModel,
-                        PricePerDay = item.PricePerDay,
-                        Quantity = item.Quantity
-                    }).ToList()
-                })
+                .Where(r => r.Id == id)
+
+                .Select(r => new RentalDetailsDTO(r.Id, r.User.Name, r.User.Surname,
+                    r.DeliveryAddress, r.RentalDate,
+                    r.RentalDateFrom, r.RentalDateTo,
+                    r.RentDevices
+                        .Select(rd => new RentDeviceDTO(rd.Device.Model.NameModel,
+                                rd.Device.PriceForRent, rd.Device.QuantityForRent)).ToList<RentDeviceDTO>()))
                 .FirstOrDefaultAsync();
 
-            if (rentalDetails == null)
+            if (rental == null)
             {
-                _logger.LogWarning($"No se encontró ningún alquiler con el ID {id}.");
-                return NotFound($"No se encontró ningún alquiler con el ID {id}.");
+                _logger.LogError($"No se encontró ningún alquiler con el ID {id}.");
+                return NotFound();
             }
-            return Ok(rentalDetails);
+
+            return Ok(rental);
         }
 
+        [HttpPost]
+        [Route("[action]")]
+        [ProducesResponseType(typeof(RentalDetailsDTO), (int)HttpStatusCode.Created)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.Conflict)]
+        public async Task<ActionResult> CreateRental(RentalForCreateDTO rentalForCreate)
+        {
+            //Con el RentDevicePostDTO
 
+            //el payment method es un enum, se debe validar que el valor recibido es valido
+            if (!Enum.IsDefined(typeof(PaymentMethodType), rentalForCreate.PaymentMethod))
+            {
+                ModelState.AddModelError("PaymentMethod", "Error! El método de pago no es válido.");
+            }
+
+            if (rentalForCreate.Quantity <= 0)
+            {
+                ModelState.AddModelError("Quantity", "Error! Debes alquilar al menos un dispositivo.");
+            }
+
+            //el nombre y apellido deban de coincidir con algun usuario registrado
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Name == rentalForCreate.Name && u.Surname == rentalForCreate.Surname);
+            if (user == null)
+                {
+                ModelState.AddModelError("User", "Error! No se encontró ningún usuario con el nombre y apellido proporcionados.");
+            }
+
+            if (ModelState.ErrorCount > 0)
+                return BadRequest(new ValidationProblemDetails(ModelState));
+            //Crear el rental
+            var rental = new Rental
+            {
+                DeliveryAddress = rentalForCreate.DeliveryAddress,
+                PaymentMethod = rentalForCreate.PaymentMethod,
+                RentalDate = DateTime.UtcNow,
+                RentalDateFrom = DateTime.UtcNow,
+                RentalDateTo = DateTime.UtcNow.AddDays(7), //rental period of 7 days
+                UserId = user!.Id
+            };
+            //Crear los RentDevice
+            var rentDevices = new List<RentDevice>();
+            // SOLUCIÓN: usar QuantityForRent en lugar de una propiedad inexistente IsAvailableForRent
+            var availableDevices = await _context.Device
+                .Include(d => d.Model)
+                .Where(d => d.QuantityForRent > 0)
+                .ToListAsync();
+            if (availableDevices.Count < rentalForCreate.Quantity)
+            {
+                return Conflict("No hay suficientes dispositivos disponibles para alquilar la cantidad solicitada.");
+            }
+            for (int i = 0; i < rentalForCreate.Quantity; i++)
+            {
+                var device = availableDevices[i];
+                var rentDevice = new RentDevice
+                {
+                    DeviceId = device.Id,
+                    Price = device.PriceForRent,
+                    Quantity = 1
+                };
+                rentDevices.Add(rentDevice);
+                //Marcar la disminución de la cantidad disponible para alquilar en vez de usar una propiedad inexistente
+                device.QuantityForRent = Math.Max(0, device.QuantityForRent - 1);
+            }
+            rental.RentDevices = rentDevices;
+            //Guardar en la base de datos
+            _context.Rental.Add(rental);
+            await _context.SaveChangesAsync();
+
+            // Volver a cargar el rental guardado con includes para tener navegación completa y poder mapear el DTO sin nulos
+            var savedRental = await _context.Rental
+                .Include(r => r.User)
+                .Include(r => r.RentDevices)
+                    .ThenInclude(rd => rd.Device)
+                        .ThenInclude(d => d.Model)
+                .FirstOrDefaultAsync(r => r.Id == rental.Id);
+
+            if (savedRental == null)
+            {
+                // Esto no debería ocurrir, pero en caso de fallo devolvemos conflicto genérico
+                return Conflict("Error al recuperar el alquiler creado.");
+            }
+
+            var rentalDetailsDTO = new RentalDetailsDTO(
+                savedRental.Id,
+                savedRental.User?.Name ?? string.Empty,
+                savedRental.User?.Surname ?? string.Empty,
+                savedRental.DeliveryAddress,
+                savedRental.RentalDate,
+                savedRental.RentalDateFrom,
+                savedRental.RentalDateTo,
+                savedRental.RentDevices.Select(rd => new RentDeviceDTO(
+                    rd.Device.Model.NameModel,
+                    rd.Price,
+                    rd.Quantity)).ToList()
+            );
+            return CreatedAtAction(nameof(GetRentalDetails), new { id = savedRental.Id }, rentalDetailsDTO);
+
+        }
     }
 }

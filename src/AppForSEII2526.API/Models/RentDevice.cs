@@ -1,18 +1,28 @@
 ﻿namespace AppForSEII2526.API.Models
 {
-    [PrimaryKey(nameof(DeviceId), nameof(RentId))]
+    [PrimaryKey(nameof(DeviceId), nameof(RentalId))]
     public class RentDevice
     {
         public RentDevice() 
         { 
         }
 
-        public RentDevice(double price, int quantity, int deviceId, int rentId)
+        public RentDevice(int deviceId, int rentId)
         {
-            Price = price;
-            Quantity = quantity;
+            Price = Device.PriceForRent;
+            Quantity = Device.QuantityForRent;
             DeviceId = deviceId;
-            RentId = rentId;
+            RentalId = rentId;
+        }
+
+        public RentDevice(Device d, Rental r)
+        {
+            Price = d.PriceForRent;
+            Quantity = d.QuantityForRent;
+            Device = d;
+            DeviceId = d.Id;
+            Rental = r;
+            RentalId = r.Id;
         }
 
         public double Price { get; set; }
@@ -20,11 +30,11 @@
         public int Quantity { get; set; }
 
         // Foreign keys
-        public IList<Device> Devices { get; set; }
+        public Device Device { get; set; }
         public int DeviceId { get; set; }
-        
-        public IList<Rental> Rentals { get; set; }
-        public int RentId { get; set; }
+
+        public Rental Rental { get; set; }
+        public int RentalId { get; set; }
 
     }
 }
