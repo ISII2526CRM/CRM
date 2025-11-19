@@ -1,13 +1,4 @@
-﻿using System;
-using System.Net;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using AppForSEII2526.API.DTOs.RentalDTOs;
+﻿using AppForSEII2526.API.DTOs.RentalDTOs;
 
 namespace AppForSEII2526.API.Controllers
 {
@@ -30,14 +21,13 @@ namespace AppForSEII2526.API.Controllers
         [Route("[action]")]
         [ProducesResponseType(typeof(RentalDetailsDTO), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        public async Task<ActionResult<RentalDetailsDTO>> GetRentalDetails(int id)
+        public async Task<ActionResult> GetRentalDetails(int id)
         {
             if (_context.Rental == null)
             {
                 _logger.LogError("Error: La tabla rental no existe.");
                 return NotFound();
             }
-            var test = new Rental();
 
             var rental = await _context.Rental
                 .Include(r => r.User)
@@ -45,37 +35,21 @@ namespace AppForSEII2526.API.Controllers
                     .ThenInclude(rd => rd.Device)
                         .ThenInclude(d => d.Model)
                 .Where(r => r.Id == id)
-                /*.Select(r => new RentalDetailsDTO
-                {
-                    Id = r.Id,
-                    Name = r.User.Name,
-                    Surname = r.User.Surname,
-                    DeliveryAddress = r.DeliveryAddress,
-                    RentalDate = r.RentalDate,
-                    TotalPrice = (decimal)r.TotalPrice,
-                    RentalPeriodDays = (r.RentalDateTo - r.RentalDateFrom).Days,
-                    RentalItems = r.RentDevices.Select(rd => new RentDeviceDTO
-                    {
-                        DeviceModel = rd.Device.Model.NameModel,
-                        PricePerDay = (decimal)rd.Price,
-                        Quantity = rd.Quantity
-                    }).ToList()
-                })
-                .FirstOrDefaultAsync();*/
 
                 .Select(r => new RentalDetailsDTO(r.Id, r.User.Name, r.User.Surname,
                     r.DeliveryAddress, r.RentalDate,
                     r.RentalDateFrom, r.RentalDateTo,
                     r.RentDevices
                         .Select(rd => new RentDeviceDTO(rd.Device.Model.NameModel,
-                                rd.Device.PriceForRent, rd.Quantity)).ToList<RentDeviceDTO>()))
+                                rd.Device.PriceForRent, rd.Device.QuantityForRent)).ToList<RentDeviceDTO>()))
                 .FirstOrDefaultAsync();
 
             if (rental == null)
             {
-                _logger.LogWarning($"No se encontró ningún alquiler con el ID {id}.");
-                return NotFound($"No se encontró ningún alquiler con el ID {id}.");
+                _logger.LogError($"No se encontró ningún alquiler con el ID {id}.");
+                return NotFound();
             }
+
             return Ok(rental);
         }
 
@@ -87,19 +61,12 @@ namespace AppForSEII2526.API.Controllers
         public async Task<ActionResult> CreateRental(RentalForCreateDTO rentalForCreate)
         {
             //Con el RentDevicePostDTO
-            /*El sistema muestra los dispositivos alquilados indicando el modelo, la marca y el
-            precio de alquiler, y solicita al cliente que introduzca el nombre, los apellidos, la
-            dirección de entrega, el método de pago (tarjeta de crédito, PayPal, efectivo) y la
-            cantidad, todos ellos campos obligatorios.*/
 
             //el payment method es un enum, se debe validar que el valor recibido es valido
             if (!Enum.IsDefined(typeof(PaymentMethodType), rentalForCreate.PaymentMethod))
             {
                 ModelState.AddModelError("PaymentMethod", "Error! El método de pago no es válido.");
             }
-
-            //if (rentalForCreate.RentalItems.Count == 0)
-            //ModelState.AddModelError("RentalItems", "Error! Debes alquilar almenos un dispositivo para alquilar");
 
             if (rentalForCreate.Quantity <= 0)
             {

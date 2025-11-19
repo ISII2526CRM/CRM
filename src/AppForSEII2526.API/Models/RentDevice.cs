@@ -15,6 +15,16 @@
             RentalId = rentId;
         }
 
+        public RentDevice(Device d, Rental r)
+        {
+            Price = d.PriceForRent;
+            Quantity = d.QuantityForRent;
+            Device = d;
+            DeviceId = d.Id;
+            Rental = r;
+            RentalId = r.Id;
+        }
+
         public double Price { get; set; }
 
         public int Quantity { get; set; }

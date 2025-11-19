@@ -10,9 +10,8 @@
         {
         }
 
-        public Rental(int id, string deliveryAddress, PaymentMethodType paymentMethod, DateTime rentalDate, DateTime rentalDateFrom, DateTime rentalDateTo, double totalPrice, IList<RentDevice> rentDevices, string? userId)
+        public Rental(string deliveryAddress, PaymentMethodType paymentMethod, DateTime rentalDate, DateTime rentalDateFrom, DateTime rentalDateTo, IList<RentDevice> rentDevices, string? userId)
         {
-            Id = id;
             DeliveryAddress = deliveryAddress;
             PaymentMethod = paymentMethod;
             RentalDate = rentalDate;
