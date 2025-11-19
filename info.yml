@@ -1,10 +1,10 @@
 project:
   name: 'ISII-2526-CRM'
-  owner: 'CRM'
+  owner: 'GrupoB'
   teamId: 'CRM'
   identities: {}
   notifications:
-    email: 'rodrigo.abril@alu.uclm.es, carlos.perez24@alu.uclm.es, miguelangel.moreno12@alu.uclm.es'
+    email: 'rodrigo.abril@alu.uclm.es,carlos.perez24@alu.uclm.es,miguelangel.moreno12@alu.uclm.es,aurora.macias@alu.uclm.es'
   members:
     member1:
       name: 'Rodrigo'
