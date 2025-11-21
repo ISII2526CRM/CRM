@@ -53,7 +53,7 @@ namespace AppForSEII2526.UT.ReseñasController_test
                 Username = "alice",
                 ReviewItems = new List<ReviewItemDTO>
                 {
-                    new ReviewItemDTO(device.Id, 4, "Bien")
+                    new ReviewItemDTO(device.Id, 4, "Reseña para algo")
                 }
             };
 
@@ -74,7 +74,7 @@ namespace AppForSEII2526.UT.ReseñasController_test
             Assert.Equal(user.UserName, saved.User.UserName);
             Assert.Single(saved.ReviewItems);
             Assert.Equal(4, saved.ReviewItems.First().Rating);
-            Assert.Equal("Bien", saved.ReviewItems.First().Comments);
+            Assert.Equal("Reseña para algo", saved.ReviewItems.First().Comments);
             Assert.Equal(device.Id, saved.ReviewItems.First().DeviceId);
         }
 
