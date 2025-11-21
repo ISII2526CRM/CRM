@@ -71,7 +71,7 @@ namespace AppForSEII2526.API.Controllers
 
         [HttpPost]
         [Route("[action]Review")]
-        [ProducesResponseType(typeof (ReviewDTO), (int)HttpStatusCode.Created)]
+        [ProducesResponseType(typeof(ReviewDTO), (int)HttpStatusCode.Created)]
         [ProducesResponseType(typeof(ValidationProblemDetails), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.Conflict)]
         public async Task<ActionResult> Create([FromBody] CreateReviewDTO input)
@@ -86,14 +86,18 @@ namespace AppForSEII2526.API.Controllers
             // Comprueba que existen items
             if (input.ReviewItems == null || !input.ReviewItems.Any())
                 return BadRequest("Se requiere al menos un dispositivo con comentario y puntuación.");
+        
+            
+
 
             // Validar que todos los ratings y comentarios estén presentes
             foreach (var it in input.ReviewItems)
             {
                 if (it.Rating < 1 || it.Rating > 5)
                     return BadRequest("La puntuación debe estar entre 1 y 5.");
-                if (string.IsNullOrWhiteSpace(it.Comment))
-                    return BadRequest("El comentario es obligatorio para cada dispositivo.");
+                if ((string.IsNullOrWhiteSpace(it.Comment)) || !(it.Comment.StartsWith("Reseña para")))
+                    return BadRequest("El comentario es obligatorio para cada dispositivo. Error, el comentario de la reseña: debe empezar por Reseña para...");
+                
             }
 
             // Verificar que los dispositivos existen en la BBDD
@@ -130,6 +134,8 @@ namespace AppForSEII2526.API.Controllers
             {
                 review.User = user;
             }
+
+
 
             // Crear ReviewItems y asociarlos
             foreach (var it in input.ReviewItems)
