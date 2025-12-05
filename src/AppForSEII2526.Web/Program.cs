@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using AppForSEII2526.Web.Components;
 using AppForSEII2526.Web.Components.Account;
 using AppForSEII2526.Web.Data;
+using AppForSEII2526.Web.API;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,6 +35,12 @@ builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.Requ
     .AddDefaultTokenProviders();
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+
+//Con esta variable obtienes la url donde la api esta desplegada
+string? URI2API = builder.Configuration.GetValue(typeof(string), "AppForSEII2526_API") as string;
+
+//Creamos el servicio para acceder a la API desde .WEB
+builder.Services.AddScoped<AppForSEII2526APIClient>(sp => new AppForSEII2526APIClient(URI2API, new HttpClient()));
 
 var app = builder.Build();
 
