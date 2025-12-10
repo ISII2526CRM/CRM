@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using AppForSEII2526.Web.Components;
 using AppForSEII2526.Web.Components.Account;
 using AppForSEII2526.Web.Data;
+using AppForSEII2526.Web.API;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,15 +37,11 @@ builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.Requ
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
-// 1. Registrar el Cliente de la API
-// NOTA: Verifica que el puerto (7286) coincida con el que usa tu proyecto API al iniciarse.
-string apiUrl = Environment.GetEnvironmentVariable("AppForSEII2526_API") ?? "https://localhost:7286";
+//Con esta variable obtienes la url donde la api esta desplegada
+string? URI2API = builder.Configuration.GetValue(typeof(string), "AppForSEII2526_API") as string;
 
-// Registrar un HttpClient con BaseAddress correcto
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiUrl) });
-
-// 2. Registrar el Container de Estado (Tu carrito de reseñas)
-builder.Services.AddScoped<ReviewStateContainer>();
+//Creamos el servicio para acceder a la API desde .WEB
+builder.Services.AddScoped<AppForSEII2526APIClient>(sp => new AppForSEII2526APIClient(URI2API, new HttpClient()));
 
 var app = builder.Build();
 
