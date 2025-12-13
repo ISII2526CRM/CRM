@@ -1,0 +1,259 @@
+﻿@page "/review/ListDevicesForReview"
+@using AppForSEII2526.Web.API
+@using ApiDtos = AppForSEII2526.API.DTOs.ReseñasDTOs
+@using AppForSEII2526.Web.Components
+@using Microsoft.AspNetCore.Authorization
+
+@inject ILogger<ListDevicesForReview> logger
+@inject AppForSEII2526APIClient apiservice
+@inject ReviewStateContainer reviewState
+@inject NavigationManager navigation
+
+@attribute [Authorize]
+
+<h3>Select Devices for Review</h3>
+
+<div class="container-fluid">
+    @* BARRA SUPERIOR: Resumen y Botón de Acción *@
+    <div class="row mb-3">
+        <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded">
+            <div>
+                <b>Devices Selected:</b> @currentReview.ReviewItems.Count
+            </div>
+            @* El botón se habilita solo si hay items en el carrito (CanStartReview) *@
+            <button class="btn btn-primary" id="StartReview" @onclick="@GoToReviewForm" disabled="@(!reviewState.CanStartReview)">
+                Review Devices
+            </button>
+        </div>
+    </div>
+
+    @* BOTÓN TOGGLE: Ver carrito *@
+    <div class="row mb-3">
+        <button class="btn btn-outline-primary" id="showReviewCart" @onclick="@ToggleReviewCart">
+            @((hiddenReviewCart ? "Show" : "Hide")) Selected Devices
+        </button>
+    </div> 
+
+    @* CARRITO DESPLEGABLE (Vista previa de lo seleccionado) *@
+    <div class="row mb-3" hidden="@hiddenReviewCart">
+        <div class="card p-3">
+            <h5>Your Selection:</h5>
+            @if (!currentReview.ReviewItems.Any())
+            {
+                <span class="text-muted">No devices selected yet.</span>
+            }
+            else
+            {
+                <ul class="list-group">
+                    @foreach (var item in currentReview.ReviewItems)
+                    {
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            @* Mostramos Marca y Modelo *@
+                            <span>@item.DeviceName - @item.DeviceModel (@item.DeviceYear)</span>
+                            <button class="btn btn-sm btn-danger" @onclick="@(() => RemoveDevice(item.DeviceId))">Remove</button>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+    </div>
+
+    @* FILTROS: Marca y Año (Requisito Flujo Alternativo 2.1) *@
+    <div class="row mb-4">
+        <h5>Filter Devices</h5>
+        <div class="input-group">
+            
+            @* Filtro por Marca *@
+            <div class="input-group-prepend">
+                <span class="input-group-text">Brand</span>
+            </div>
+            <input type="text" class="form-control" @bind="filterBrand" placeholder="e.g. Apple, Samsung...">
+
+            @* Filtro por Año *@
+            <div class="input-group-prepend">
+                <span class="input-group-text">Year</span>
+            </div>
+            <input type="number" class="form-control" @bind="filterYear" placeholder="e.g. 2024">
+
+            @* Botón Buscar *@
+            <div class="input-group-append">
+                <button class="btn btn-outline-primary" id="searchDevices" @onclick="@SearchDevices">Search</button>
+            </div>
+            
+            @* Botón Limpiar Filtros *@
+            <div class="input-group-append ml-2">
+                 <button class="btn btn-outline-secondary" @onclick="@ClearFilters">Clear</button>
+            </div>
+        </div>
+    </div>
+
+    @* TABLA DE RESULTADOS *@
+    <div class="row">
+        <div class="container-fluid">
+            @if (Devices == null)
+            {
+                <p><em>Loading...</em></p>
+            }
+            else if (!Devices.Any())
+            {
+                <p><em>No devices found with these filters.</em></p>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped" id="TableOfDevices">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th>Brand</th>
+                                <th>Model</th>
+                                <th>Color</th>
+                                <th>Year</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var device in Devices)
+                            {
+                                <tr id="Device_@device.Id">
+                                    <td>@device.Brand</td>
+                                    <td>@device.Model</td>
+                                    <td>@device.Color</td>
+                                    <td>@device.Year</td>
+                                    <td>
+                                        @* Verificamos si ya está añadido para deshabilitar el botón o cambiar texto *@
+                                        @if (IsDeviceSelected(device.Id))
+                                        {
+                                            <button class="btn btn-success disabled" disabled>Selected</button>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn btn-outline-secondary" @onclick="@(()=>AddDevice(device))">Add to Review</button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@* Dialogo para errores *@
+@if (DialogOKIsOpen)
+{
+    <Dialog Caption="Information"
+            Message="@DialogOKMessage"
+            OnClose="@OnDialogOKClose"
+            Type=Dialog.Category.Okay>
+    </Dialog>
+}
+
+@code {
+    // --- VARIABLES DE ESTADO Y UI ---
+    private bool DialogOKIsOpen = false;
+    private string? DialogOKMessage;
+    private bool hiddenReviewCart = true;
+
+    // Filtros
+    private string? filterBrand;
+    private int? filterYear;
+
+    // Lista de resultados (Catálogo) — uso consistente del alias ApiDtos
+    private ICollection<ApiDtos.DevicesReseñaDTO> Devices { get; set; } = new List<ApiDtos.DevicesReseñaDTO>();
+
+    // Acceso rápido al DTO de sesión actual (desambiguado)
+    private ApiDtos.ReviewDTO currentReview => reviewState.CurrentReview;
+
+    // --- MÉTODOS DE UI ---
+
+    private void ToggleReviewCart() => hiddenReviewCart = !hiddenReviewCart;
+
+    private void OpenDialogOK(string message)
+    {
+        DialogOKIsOpen = true;
+        DialogOKMessage = message;
+    }
+
+    private Task OnDialogOKClose()
+    {
+        DialogOKIsOpen = false;
+        return Task.CompletedTask;
+    }
+
+    // --- MÉTODOS DE NEGOCIO ---
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Carga inicial sin filtros
+        await SearchDevices();
+    }
+
+    protected async Task SearchDevices()
+    {
+        try
+        {
+            // Construir query string opcional (si tu cliente requiere query manual)
+            // Llamada al cliente generado. Ajusta el nombre del método si tu cliente usa otra convención.
+            var result = await apiservice.GetDeviceForReviewFiltroAsync(filterBrand, filterYear);
+
+            // Mapeo explícito al DTO del API teniendo en cuenta los requisitos del constructor:
+            // DevicesReseñaDTO(int id, string brand, string color, int year, string model)
+            if (result != null)
+            {
+                Devices = result
+                    .Select(d => new ApiDtos.DevicesReseñaDTO(
+                        d.Id,
+                        d.Brand ?? string.Empty,
+                        d.Color ?? string.Empty,
+                        d.Year,
+                        d.Model ?? string.Empty))
+                    .ToList();
+            }
+            else
+            {
+                Devices = new List<ApiDtos.DevicesReseñaDTO>();
+            }
+        }
+        catch (Exception ex)
+        {
+            Devices = new List<ApiDtos.DevicesReseñaDTO>();
+            logger.LogError(ex, "Error fetching devices: {Message}", ex.Message);
+            OpenDialogOK("Could not load the device list. Please try again later.");
+        }
+    }
+    
+    private async Task ClearFilters()
+    {
+        filterBrand = null;
+        filterYear = null;
+        await SearchDevices();
+    }
+
+    // Paso 3: Añadir al carrito (desambiguado)
+    private void AddDevice(ApiDtos.DevicesReseñaDTO device)
+    {
+        reviewState.AddDeviceToReview(device);
+        hiddenReviewCart = false;
+    }
+
+    // Eliminar del carrito
+    private void RemoveDevice(int deviceId)
+    {
+        reviewState.RemoveDevice(deviceId);
+    }
+
+    // Helper visual para saber si un botón debe estar deshabilitado
+    private bool IsDeviceSelected(int deviceId)
+    {
+        return currentReview.ReviewItems.Any(x => x.DeviceId == deviceId);
+    }
+
+    // Paso 4: Navegar al formulario
+    private void GoToReviewForm()
+    {
+        // Navegamos a la página donde se rellenan los comentarios (CreateReview)
+        navigation.NavigateTo("/reviews/createreview");
+    }
+}

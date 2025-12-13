@@ -43,6 +43,10 @@ string? URI2API = builder.Configuration.GetValue(typeof(string), "AppForSEII2526
 //Creamos el servicio para acceder a la API desde .WEB
 builder.Services.AddScoped<AppForSEII2526APIClient>(sp => new AppForSEII2526APIClient(URI2API, new HttpClient()));
 
+//adding an In-memory state container service
+//https://learn.microsoft.com/en-us/aspnet/core/blazor/state-management/?view=aspnetcore-8.0#in-memory-state-container-service
+builder.Services.AddScoped<ReviewStateContainer>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
