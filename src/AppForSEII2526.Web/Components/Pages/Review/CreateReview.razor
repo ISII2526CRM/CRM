@@ -2,18 +2,18 @@
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Authorization
 @using AppForSEII2526.Web.API
-@using AppForSEII2526.Web.Components 
-@using System.Reflection 
+@using AppForSEII2526.Web.Components
+@using AppForSEII2526.Web.Components.Shared
 @inject AppForSEII2526APIClient apiservice
 @inject ReviewStateContainer reviewState
 @inject NavigationManager navigation
-@inject ILogger<CreateReview> logger
 
 @attribute [Authorize]
 
 <h3>Create Review</h3>
 
-<EditForm Model="formModel" OnSubmit="HandleSubmitDebug">
+@* Usamos OnValidSubmit: Solo abre el diálogo si Título y País están rellenos *@
+<EditForm Model="formModel" OnValidSubmit="OpenDialog">
     <DataAnnotationsValidator />
     <ValidationSummary />
 
@@ -51,6 +51,7 @@
                 <tbody>
                     @foreach (var item in reviewState.CurrentReview.ReviewItems)
                     {
+                        @* Asumimos que tienes un componente ReviewItem para editar la fila *@
                         <ReviewItem Item="item" OnRemovedItem="RemoveItem" OnChanged="StateHasChanged" />
                     }
                 </tbody>
@@ -58,28 +59,19 @@
         </div>
 
         <div class="d-flex gap-2">
-            @if (isProcessing)
-            {
-                 <button class="btn btn-primary" type="button" disabled>
-                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                    Processing...
-                </button>
-            }
-            else
-            {
-                <button class="btn btn-primary" type="submit" disabled="@( !CanSubmit )">Submit Review</button>
-            }
-            <button class="btn btn-secondary" type="button" @onclick="Cancel" disabled="@isProcessing">Cancel</button>
+            <button class="btn btn-primary" type="submit">Submit Review</button>
+            <button class="btn btn-secondary" type="button" @onclick="Cancel">Cancel</button>
         </div>
     }
 </EditForm>
 
-@* DIÁLOGOS DE CONFIRMACIÓN Y ERROR *@
-@if (ConfirmDialogOpen)
+@* --- COMPONENTES DE DIÁLOGO --- *@
+
+@if (DialogIsOpen)
 {
     <Dialog Caption="Submit review"
-            Message="Do you want to submit this review?"
-            OnClose="@OnConfirmDialogClose"
+            Message="Do you want to proceed to submit this review?"
+            OnClose="@OnDialogClose"
             Type=Dialog.Category.SaveNot>
     </Dialog>
 }
@@ -105,179 +97,145 @@
     }
 
     private FormModel formModel = new();
-    
-    // === ESTADOS DE LA UI ===
-    private bool ConfirmDialogOpen = false;
-    private bool DialogOKIsOpen = false;
-    private string? DialogOKMessage;
-    private string DialogTitle = "Error";
-    private bool isProcessing = false;
 
-    // Solo habilitar botón si hay items y campos rellenos
-    private bool CanSubmit =>
-        reviewState.CurrentReview.ReviewItems.Any()
-        && !string.IsNullOrWhiteSpace(formModel.ReviewTitle)
-        && !string.IsNullOrWhiteSpace(formModel.CustomerCountry);
+    // === ESTADO ===
+    private bool DialogIsOpen = false;
+    private bool DialogOKIsOpen = false;
+    private string DialogOKMessage = "";
+    private string DialogTitle = "Error";
+    private string CurrentUsername = "Anonymous";
 
     [CascadingParameter]
     private Task<AuthenticationState>? AuthenticationStateTask { get; set; }
 
-    // === LÓGICA DE ENVÍO Y DEPURACIÓN ===
-
-    private void HandleSubmitDebug(EditContext context)
+    // === INICIALIZACIÓN ===
+    protected override async Task OnInitializedAsync()
     {
-        Console.WriteLine("DEBUG: Botón Submit pulsado.");
+        // Cargamos el usuario actual
+        if (AuthenticationStateTask is not null)
+        {
+            var authState = await AuthenticationStateTask;
+            var user = authState?.User;
 
-        if (context.Validate())
-        {
-            Console.WriteLine("DEBUG: Formulario válido. Abriendo confirmación.");
-            OpenConfirmDialog();
-        }
-        else
-        {
-            Console.WriteLine("DEBUG: Formulario inválido.");
-            // Imprimir errores en consola para ver qué falta
-            foreach (var error in context.GetValidationMessages())
+            if (user is not null && user.Identity is not null && user.Identity.IsAuthenticated)
             {
-                Console.WriteLine($" - Error: {error}");
+                CurrentUsername = user.Identity.Name ?? "Anonymous";
             }
-            OpenDialogOK("Por favor, rellene todos los campos obligatorios.", "Formulario Incompleto");
         }
     }
 
-    private void OpenConfirmDialog()
+    // === LÓGICA DE VALIDACIÓN ===
+    private void OpenDialog()
     {
-        ConfirmDialogOpen = true;
-        StateHasChanged();
+        // Validación extra: Debe haber dispositivos seleccionados
+        if (!reviewState.CurrentReview.ReviewItems.Any())
+        {
+            OpenDialogOK("Debe seleccionar al menos un dispositivo.", "Faltan datos");
+            return;
+        }
+        DialogIsOpen = true;
     }
 
-    private async Task OnConfirmDialogClose(bool isOk)
+    // === ENVÍO AL SERVIDOR ===
+    private async Task OnDialogClose(bool isOk)
     {
-        ConfirmDialogOpen = false;
-        StateHasChanged(); 
+        DialogIsOpen = false;
+        StateHasChanged();
 
-        if (!isOk) return;
+        if (isOk)
+        {
+            try
+            {
+                // 1. Preparamos los comentarios (Regla "Reseña para...")
+                PrepareItemsForSubmission();
 
-        // 1. Validaciones manuales de negocio antes de enviar
+                // 2. Construimos el DTO
+                var createDto = new AppForSEII2526.Web.API.CreateReviewDTO
+                {
+                    ReviewTitle = formModel.ReviewTitle,
+                    CustomerCountry = formModel.CustomerCountry,
+                    Username = CurrentUsername,
+
+                    // Mapeamos solo ID, Rating y Comment. El resto null/0 para evitar problemas.
+                    ReviewItems = reviewState.CurrentReview.ReviewItems.Select(ri => new AppForSEII2526.Web.API.ReviewItemDTO
+                    {
+                        DeviceId = ri.DeviceId,
+                        Rating = ri.Rating,
+                        Comment = ri.Comment,
+
+                        DeviceName = null,
+                        DeviceModel = null,
+                        DeviceYear = 0
+                    }).ToList()
+                };
+
+                // 3. Llamada a la API
+                var result = await apiservice.CreateAsync(createDto);
+
+                // 4. Limpiamos la sesión (el carrito)
+                reviewState.RestartSession();
+
+                // 5. Intentamos obtener el ID nuevo para redirigir
+                int newId = 0;
+                if (result != null)
+                {
+                    try
+                    {
+                        var prop = result.GetType().GetProperty("ReviewId");
+                        if (prop != null) newId = (int)prop.GetValue(result);
+                    }
+                    catch { }
+                }
+
+                if (newId > 0)
+                {
+                    navigation.NavigateTo($"/reviews/detailreview?ReviewID={newId}");
+                }
+                else
+                {
+                    // Si se creó pero no tenemos ID, volvemos a la lista
+                    navigation.NavigateTo("/reviews/listdevices");
+                }
+
+            }
+            catch (AppForSEII2526.Web.API.ApiException<AppForSEII2526.Web.API.ValidationProblemDetails> exVal)
+            {
+                // Manejo de errores de validación (400 Bad Request)
+                string message = "Datos inválidos:";
+                if (exVal.Result.Errors != null)
+                {
+                    message = "";
+                    foreach (var errors in exVal.Result.Errors.Values)
+                        message = string.Join("\n", message, string.Join("\n", errors));
+                }
+                OpenDialogOK(message, "Error de Validación");
+            }
+            catch (AppForSEII2526.Web.API.ApiException ex)
+            {
+                OpenDialogOK($"Error del servidor ({ex.StatusCode}): {ex.Message}", "Error API");
+            }
+            catch (Exception ex)
+            {
+                OpenDialogOK($"Error inesperado: {ex.Message}", "Error");
+            }
+        }
+    }
+
+    // === MÉTODOS AUXILIARES ===
+
+    // Asegura que los comentarios cumplan la regla del backend
+    private void PrepareItemsForSubmission()
+    {
         foreach (var it in reviewState.CurrentReview.ReviewItems)
         {
-            // Validar Rating
-            if (it.Rating < 1 || it.Rating > 5)
-            {
-                OpenDialogOK($"El dispositivo {it.DeviceName} tiene una puntuación incorrecta (debe ser 1-5).");
-                return;
-            }
-
-            // Limpiar y validar Comentario
             it.Comment = (it.Comment ?? string.Empty).Trim();
-            
-            // Lógica opcional: Añadir prefijo si no existe (puedes quitar esto si prefieres comentarios limpios)
-            if (!string.IsNullOrEmpty(it.Comment) && !it.Comment.StartsWith("Reseña para", StringComparison.OrdinalIgnoreCase))
+            if (!it.Comment.StartsWith("Reseña para", StringComparison.OrdinalIgnoreCase))
             {
-                // it.Comment = $"Reseña para {it.DeviceName}: {it.Comment}"; // Opcional
+                string devName = !string.IsNullOrWhiteSpace(it.DeviceName) ? it.DeviceName : "dispositivo";
+                it.Comment = $"Reseña para {devName}: {it.Comment}";
             }
-        }
-
-        // 2. Preparar UI
-        isProcessing = true;
-        StateHasChanged();
-
-        // 3. CONSTRUCCIÓN DEL DTO (Aquí resolvemos tu duda de los atributos)
-        var createDto = new AppForSEII2526.Web.API.CreateReviewDTO
-        {
-            ReviewTitle = formModel.ReviewTitle,
-            CustomerCountry = formModel.CustomerCountry,
-            
-            // Mapeamos SOLO lo necesario para crear la relación
-            ReviewItems = reviewState.CurrentReview.ReviewItems
-                .Select(i => new AppForSEII2526.Web.API.ReviewItemDTO
-                {
-                    DeviceId = i.DeviceId,      // ? IMPRESCINDIBLE: El ID conecta con la BBDD
-                    Rating = i.Rating,          // ? IMPRESCINDIBLE
-                    Comment = i.Comment,        // ? IMPRESCINDIBLE
-                    
-                    // ? NO ENVIAMOS: Name, Model, Year. 
-                    // Se mandan como null/0 para que el Swagger/API no se queje, 
-                    // pero el Backend debería ignorarlos y usar el ID.
-                    DeviceName = null, 
-                    DeviceModel = null, 
-                    DeviceYear = 0     
-                })
-                .ToList()
-        };
-
-        // 4. Intentar obtener Username (si hay Auth)
-        try
-        {
-            var authState = AuthenticationStateTask is not null ? await AuthenticationStateTask : null;
-            var user = authState?.User;
-            if (user?.Identity?.IsAuthenticated == true)
-            {
-                createDto.Username = user.Identity.Name;
-            }
-            else 
-            {
-                createDto.Username = "Anonymous"; // Valor por defecto si no hay login
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine("WARN: No se pudo obtener usuario: " + ex.Message);
-            createDto.Username = "Unknown";
-        }
-
-        // 5. Llamada a la API
-        try
-        {
-            Console.WriteLine($"DEBUG: Enviando API. Items: {createDto.ReviewItems.Count}, Title: {createDto.ReviewTitle}");
-            
-            var resultObject = await apiservice.CreateAsync(createDto);
-            
-            Console.WriteLine("DEBUG: Respuesta recibida correctamente.");
-
-            // Limpiar estado
-            reviewState.RestartSession();
-            
-            // Intentar recuperar ID de la respuesta para redirigir
-            int idRecuperado = 0;
-            if (resultObject != null)
-            {
-                // Intentamos leer la propiedad ReviewId de forma segura
-                try { 
-                    var prop = resultObject.GetType().GetProperty("ReviewId");
-                    if (prop != null) idRecuperado = (int)prop.GetValue(resultObject);
-                } catch { }
-            }
-
-            if (idRecuperado > 0)
-            {
-                navigation.NavigateTo($"/reviews/detailreview?ReviewID={idRecuperado}");
-            }
-            else
-            {
-                // Si se creó pero no pudimos leer el ID, volvemos al inicio o mostramos aviso
-                OpenDialogOK("Reseña creada correctamente.", "Éxito");
-                navigation.NavigateTo("/reviews/listdevices");
-            }
-        }
-        catch (AppForSEII2526.Web.API.ApiException apiex)
-        {
-            Console.WriteLine($"ERROR API ({apiex.StatusCode}): {apiex.Response}");
-            OpenDialogOK($"Error al guardar: {apiex.StatusCode}", "Error del Servidor");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"ERROR CRÍTICO: {ex}");
-            OpenDialogOK($"Ocurrió un error inesperado: {ex.Message}", "Error");
-        }
-        finally 
-        {
-            isProcessing = false;
-            StateHasChanged();
         }
     }
-
-    // === METODOS AUXILIARES ===
 
     private void RemoveItem(int deviceId)
     {
@@ -300,7 +258,6 @@
     private Task OnDialogOKClose()
     {
         DialogOKIsOpen = false;
-        StateHasChanged();
         return Task.CompletedTask;
     }
 }

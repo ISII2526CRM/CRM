@@ -1,80 +1,154 @@
 @page "/reviews/detailreview"
 @using AppForSEII2526.Web.API
-@using ApiDtos = AppForSEII2526.Web.API
+@using Microsoft.AspNetCore.Authorization
 @inject AppForSEII2526APIClient apiservice
-@inject ILogger<DetailReview> logger
 @inject NavigationManager navigation
 
-<h3>Review details</h3>
+@attribute [Authorize]
 
-@if (isLoading)
+<h3>Review Details</h3>
+
+@if (!string.IsNullOrEmpty(error))
+{
+    <div class="alert alert-danger">
+        @error
+    </div>
+    @* Botón funcional incluso si hay error *@
+    <button class="btn btn-secondary mt-2" @onclick="GoBack">Back to List</button>
+}
+else if (review == null)
 {
     <p><em>Loading...</em></p>
 }
-else if (loadError != null)
+else
 {
-    <div class="alert alert-danger">@loadError</div>
-}
-else if (review != null)
-{
-    <div class="card mb-3">
+    @* --- CABECERA DE LA RESEÑA --- *@
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <strong>General Information</strong>
+        </div>
         <div class="card-body">
-            <h5>@review.ReviewTitle</h5>
-            <p><b>From:</b> @review.Username ?? "Anonymous" &nbsp; <b>Country:</b> @review.CustomerCountry</p>
-            <p><b>Date:</b> @review.DateOfReview.ToLocalTime().ToString("g")</p>
-
-            <h6>Items</h6>
-            <ul class="list-group">
-                @foreach (var item in review.ReviewItems ?? Enumerable.Empty<ApiDtos.ReviewItemDTO>())
-                {
-                    <li class="list-group-item">
-                        <b>@item.DeviceName</b> - @item.DeviceModel (@item.DeviceYear) <br />
-                        <b>Rating:</b> @item.Rating &nbsp; <b>Comment:</b> @item.Comment
-                    </li>
-                }
-            </ul>
+            <table class="table table-borderless table-sm mb-0">
+                <tr>
+                    <th style="width: 200px;">Review Title:</th>
+                    <td id="ReviewTitle" class="fs-5">
+                        @* Aquí se muestra el Título General de la Reseña *@
+                        <strong>@review.ReviewTitle</strong>
+                    </td>
+                </tr>
+                <tr>
+                    <th>User:</th>
+                    <td id="Username">@review.Username</td>
+                </tr>
+                <tr>
+                    <th>Country:</th>
+                    <td id="CustomerCountry">@review.CustomerCountry</td>
+                </tr>
+                <tr>
+                    <th>Date:</th>
+                    <td id="DateOfReview">@review.DateOfReview.ToString("dd/MM/yyyy HH:mm")</td>
+                </tr>
+            </table>
         </div>
     </div>
-    <button class="btn btn-secondary" @onclick="BackToList">Back to list</button>
+
+    @* --- TABLA DE DISPOSITIVOS --- *@
+    <h4>Reviewed Devices</h4>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-hover" id="ReviewItems">
+            <thead class="table-dark">
+                <tr>
+                    <th scope="col">Device Name</th>
+                    <th scope="col">Model</th>
+                    <th scope="col">Year</th>
+                    <th scope="col" style="width: 120px;">Rating</th>
+                    <th scope="col">Comment</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (ReviewItemDTO item in review.ReviewItems)
+                {
+                    <tr id="ReviewItem_@item.DeviceName">
+                        <td>@item.DeviceName</td>
+                        <td>@item.DeviceModel</td>
+                        <td>@item.DeviceYear</td>
+                        <td>
+                            @* Badge de color según la nota *@
+                            <span class="badge @(item.Rating >= 4 ? "bg-success" : item.Rating >= 3 ? "bg-primary" : "bg-danger")">
+                                @item.Rating / 5
+                            </span>
+                        </td>
+                        <td>@item.Comment</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mt-4 mb-5">
+        <button class="btn btn-secondary" @onclick="GoBack">Back to List</button>
+    </div>
 }
 
 @code {
     [Parameter]
-    [SupplyParameterFromQuery(Name = "ReviewID")]
-    public int? ReviewID { get; set; }
+    [SupplyParameterFromQuery]
+    public int ReviewID { get; set; }
 
-    private ApiDtos.ReviewDTO? review;
-    private bool isLoading = true;
-    private string? loadError;
+    private ReviewDTO? review;
+    private string error = "";
 
-    protected override async Task OnParametersSetAsync()
+    [CascadingParameter]
+    private Task<AuthenticationState>? authenticationState { get; set; }
+
+    protected override async Task OnInitializedAsync()
     {
-        if (ReviewID == null)
+        string currentUserName = "";
+
+        // 1. Obtener usuario logueado
+        if (authenticationState is not null)
         {
-            loadError = "No ReviewID specified.";
-            isLoading = false;
-            return;
+            var authState = await authenticationState;
+            var user = authState?.User;
+
+            if (user is not null && user.Identity is not null && user.Identity.IsAuthenticated)
+            {
+                currentUserName = user.Identity.Name ?? "";
+            }
         }
 
+        // 2. Llamada a la API
         try
         {
-            review = await apiservice.GetReviewDetailsAsync(ReviewID.Value);
+            review = await apiservice.GetReviewDetailsAsync(ReviewID);
         }
-        catch (AppForSEII2526.Web.API.ApiException ex)
+        catch (ApiException exception)
         {
-            loadError = $"Error loading review: {ex.Message}";
-            logger.LogError(ex, "Error fetching review details for id {Id}", ReviewID);
+            review = null;
+            error = $"Error fetching review (Status: {exception.StatusCode})";
         }
-        catch (Exception ex)
+
+        // 3. Verificación de Seguridad
+        if (review != null)
         {
-            loadError = "Unexpected error loading review.";
-            logger.LogError(ex, "Unexpected error fetching review details for id {Id}", ReviewID);
+            // Solo permitimos ver la reseña si eres el dueño o es anónima
+            if (!string.Equals(review.Username, currentUserName, StringComparison.OrdinalIgnoreCase)
+                && review.Username != "Anonymous")
+            {
+                review = null;
+                error = "Error! You are not authorized to see this review.";
+            }
         }
-        finally
+        else if (string.IsNullOrEmpty(error))
         {
-            isLoading = false;
+            error = $"Review with ID {ReviewID} not found.";
         }
     }
 
-    private void BackToList() => navigation.NavigateTo("/reviews/listdevices");
+    // NAVEGACIÓN
+    private void GoBack()
+    {
+        navigation.NavigateTo("/reviews/listdevices");
+    }
 }

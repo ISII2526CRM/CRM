@@ -165,7 +165,7 @@ namespace AppForSEII2526.API.Controllers
 
             };
 
-            return CreatedAtAction(nameof(GetReviewDetails), new { id = review.ReviewId }, resultDto);
+            return Ok(resultDto);
         }
     }
 }
