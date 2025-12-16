@@ -205,6 +205,7 @@
                 Devices = result
                     .Select(d => new ApiDtos.DevicesReseñaDTO(
                         d.Id,
+                        d.Name,
                         d.Brand ?? string.Empty,
                         d.Color ?? string.Empty,
                         d.Year,

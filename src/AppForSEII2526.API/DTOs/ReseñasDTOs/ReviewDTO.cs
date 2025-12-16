@@ -5,8 +5,9 @@ using System.ComponentModel.DataAnnotations;
 
     public class ReviewDTO
     {
-    public ReviewDTO(string username, string customerCountry, string reviewTitle, DateTime dateOfReview, IList<ReviewItemDTO> reviewItems)
+    public ReviewDTO(int reviewId, string username, string customerCountry, string reviewTitle, DateTime dateOfReview, IList<ReviewItemDTO> reviewItems)
     {
+        ReviewId = reviewId;
         Username = username;
         CustomerCountry = customerCountry;
         ReviewTitle = reviewTitle;
@@ -19,7 +20,8 @@ using System.ComponentModel.DataAnnotations;
         ReviewItems = new List<ReviewItemDTO>();
     }
 
-    public string Username { get; set; } 
+        public int ReviewId { get; set; }
+        public string Username { get; set; } 
         public string CustomerCountry { get; set; }
         public string ReviewTitle { get; set; } 
         public DateTime DateOfReview { get; set; } 

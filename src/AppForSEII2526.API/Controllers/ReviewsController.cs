@@ -1,14 +1,13 @@
-﻿using AppForSEII2526.API.DTOs.ReseñasDTOs;
-using AppForSEII2526.API.DTOs.ReseñasDTOs; // La que tú pusiste (¡Correcto!)
-using Microsoft.AspNetCore.Mvc;           // Para [Route], [ApiController], ControllerBase, etc.
-using Microsoft.EntityFrameworkCore;      // Para .Include, .ThenInclude, .Select, .FirstOrDefaultAsync
-using Microsoft.Extensions.Logging;       // Para ILogger
-using System.Net;                           // Para HttpStatusCode
-using System.Threading.Tasks;             // Para Task, async, await
-using System.Linq;                          // Para .Select, .ToList (aunque EFCore a veces lo infiere)
-
-
-using AppForSEII2526.API.Data;
+﻿using AppForSEII2526.API.Data;
+using AppForSEII2526.API.DTOs.ReseñasDTOs;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
 
 namespace AppForSEII2526.API.Controllers
 {
@@ -16,9 +15,9 @@ namespace AppForSEII2526.API.Controllers
     [ApiController]
     public class ReviewsController : ControllerBase
     {
-        //used to enable your controller to access to the database
+        // used to enable your controller to access the database
         private readonly ApplicationDbContext _context;
-        //used to log any information when your system es running
+        // used to log any information when your system is running
         private readonly ILogger<ReviewsController> _logger;
 
         public ReviewsController(ApplicationDbContext context, ILogger<ReviewsController> logger)
@@ -39,10 +38,10 @@ namespace AppForSEII2526.API.Controllers
                     .ThenInclude(ri => ri.Device)
                         .ThenInclude(d => d.Model)
                 .Where(r => r.ReviewId == id)
-
                 // 2. Proyectamos el resultado al DTO
                 .Select(r => new ReviewDTO
                 {
+                    ReviewId = r.ReviewId, // <--- Importante: Asegúrate de tener esto en ReviewDTO
                     Username = r.User.UserName,
                     CustomerCountry = r.CustomerCountry,
                     ReviewTitle = r.ReviewTitle,
@@ -54,11 +53,11 @@ namespace AppForSEII2526.API.Controllers
                         DeviceName = item.Device.Name,
                         DeviceModel = item.Device.Model.NameModel,
                         DeviceYear = item.Device.Year,
-                        Rating = item.Rating, // 'Rating' viene de ReviewItem
-                        Comment = item.Comments // 'Comments' viene de ReviewItem
+                        Rating = item.Rating,
+                        Comment = item.Comments
                     }).ToList()
                 })
-                .FirstOrDefaultAsync(); // Usamos FirstOrDefaultAsync porque solo buscamos UNO
+                .FirstOrDefaultAsync();
 
             if (reviewDetails == null)
             {
@@ -71,7 +70,7 @@ namespace AppForSEII2526.API.Controllers
 
         [HttpPost]
         [Route("[action]Review")]
-        [ProducesResponseType(typeof(ReviewDTO), (int)HttpStatusCode.Created)]
+        [ProducesResponseType(typeof(ReviewDTO), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ValidationProblemDetails), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.Conflict)]
         public async Task<ActionResult> Create([FromBody] CreateReviewDTO input)
@@ -86,9 +85,6 @@ namespace AppForSEII2526.API.Controllers
             // Comprueba que existen items
             if (input.ReviewItems == null || !input.ReviewItems.Any())
                 return BadRequest("Se requiere al menos un dispositivo con comentario y puntuación.");
-        
-            
-
 
             // Validar que todos los ratings y comentarios estén presentes
             foreach (var it in input.ReviewItems)
@@ -97,7 +93,6 @@ namespace AppForSEII2526.API.Controllers
                     return BadRequest("La puntuación debe estar entre 1 y 5.");
                 if ((string.IsNullOrWhiteSpace(it.Comment)) || !(it.Comment.StartsWith("Reseña para")))
                     return BadRequest("El comentario es obligatorio para cada dispositivo. Error, el comentario de la reseña: debe empezar por Reseña para...");
-                
             }
 
             // Verificar que los dispositivos existen en la BBDD
@@ -107,14 +102,12 @@ namespace AppForSEII2526.API.Controllers
             if (missing.Any())
                 return BadRequest($"No se encontraron dispositivos con Ids: {string.Join(", ", missing)}");
 
-            
             AppForSEII2526.API.Models.ApplicationUser? user = null;
             if (!string.IsNullOrWhiteSpace(input.Username))
             {
                 user = await _context.ApplicationUser.FirstOrDefaultAsync(u => u.UserName == input.Username);
                 if (user == null)
                 {
-                    // elegir: devolver error en lugar de crear reseña huérfana
                     return BadRequest($"Usuario '{input.Username}' no existe.");
                 }
             }
@@ -125,7 +118,6 @@ namespace AppForSEII2526.API.Controllers
                 ReviewTitle = input.ReviewTitle,
                 CustomerCountry = input.CustomerCountry,
                 DateOfReview = DateTime.UtcNow,
-                // OverallRating opcional: se puede calcular como media de los items
                 OverallRating = (int)Math.Round(input.ReviewItems.Average(i => i.Rating)),
                 ReviewItems = new List<AppForSEII2526.API.Models.ReviewItem>()
             };
@@ -134,8 +126,6 @@ namespace AppForSEII2526.API.Controllers
             {
                 review.User = user;
             }
-
-
 
             // Crear ReviewItems y asociarlos
             foreach (var it in input.ReviewItems)
@@ -163,9 +153,19 @@ namespace AppForSEII2526.API.Controllers
                 return BadRequest("Error al guardar la reseña.");
             }
 
-            // Devolver Created con la localización al GET de detalles
-            return CreatedAtAction(nameof(GetReviewDetails), new { id = review.ReviewId }, new { reviewId = review.ReviewId });
-        }
+            // --- CORRECCIÓN FINAL ---
+            // Construimos el DTO de respuesta incluyendo el ID generado
+            var resultDto = new ReviewDTO
+            {
+                ReviewId = review.ReviewId, // ESTO ES LA CLAVE PARA QUE FUNCIONE EL FRONTEND
+                ReviewTitle = review.ReviewTitle,
+                CustomerCountry = review.CustomerCountry,
+                DateOfReview = review.DateOfReview,
+                Username = review.User?.UserName ?? (string.IsNullOrWhiteSpace(input.Username) ? "Anonymous" : input.Username),
 
+            };
+
+            return CreatedAtAction(nameof(GetReviewDetails), new { id = review.ReviewId }, resultDto);
+        }
     }
 }

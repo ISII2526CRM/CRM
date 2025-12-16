@@ -1,0 +1,48 @@
+@using ApiDtos = AppForSEII2526.API.DTOs.ReseñasDTOs
+@using Microsoft.AspNetCore.Components
+
+<div class="card mb-2">
+    <div class="card-body">
+        <div class="d-flex align-items-start justify-content-between">
+            <div class="flex-grow-1">
+                <h6 class="card-title mb-1">@Item.DeviceName (@Item.DeviceModel)</h6>
+                <div class="text-muted small mb-2">Year: @Item.DeviceYear</div>
+
+                <div class="row g-2">
+                    <div class="col-auto" style="min-width:120px;">
+                        <label class="form-label small">Rating</label>
+                        <InputNumber class="form-control" @bind-Value="Item.Rating" min="1" max="5" @onchange="OnInputChanged" />
+                    </div>
+                    <div class="col">
+                        <label class="form-label small">Comment</label>
+                        <InputTextArea class="form-control" @bind-Value="Item.Comment" rows="2" @onchange="OnInputChanged" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="ms-3">
+                <button class="btn btn-sm btn-outline-danger" title="Remove" @onclick="RemoveItem">
+                    <span class="bi bi-trash"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public ApiDtos.ReviewItemDTO Item { get; set; } = new();
+
+    // Emite DeviceId al componente padre para eliminarlo
+    [Parameter] public EventCallback<int> OnRemovedItem { get; set; }
+
+    // Notifica cambios (opcional) para que el padre refresque la UI o valide
+    [Parameter] public EventCallback OnChanged { get; set; }
+
+    private Task RemoveItem() => OnRemovedItem.HasDelegate
+        ? OnRemovedItem.InvokeAsync(Item.DeviceId)
+        : Task.CompletedTask;
+
+    private Task OnInputChanged(ChangeEventArgs _) => OnChanged.HasDelegate
+        ? OnChanged.InvokeAsync()
+        : Task.CompletedTask;
+}

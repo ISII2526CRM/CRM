@@ -1,0 +1,80 @@
+@page "/reviews/detailreview"
+@using AppForSEII2526.Web.API
+@using ApiDtos = AppForSEII2526.Web.API
+@inject AppForSEII2526APIClient apiservice
+@inject ILogger<DetailReview> logger
+@inject NavigationManager navigation
+
+<h3>Review details</h3>
+
+@if (isLoading)
+{
+    <p><em>Loading...</em></p>
+}
+else if (loadError != null)
+{
+    <div class="alert alert-danger">@loadError</div>
+}
+else if (review != null)
+{
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5>@review.ReviewTitle</h5>
+            <p><b>From:</b> @review.Username ?? "Anonymous" &nbsp; <b>Country:</b> @review.CustomerCountry</p>
+            <p><b>Date:</b> @review.DateOfReview.ToLocalTime().ToString("g")</p>
+
+            <h6>Items</h6>
+            <ul class="list-group">
+                @foreach (var item in review.ReviewItems ?? Enumerable.Empty<ApiDtos.ReviewItemDTO>())
+                {
+                    <li class="list-group-item">
+                        <b>@item.DeviceName</b> - @item.DeviceModel (@item.DeviceYear) <br />
+                        <b>Rating:</b> @item.Rating &nbsp; <b>Comment:</b> @item.Comment
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+    <button class="btn btn-secondary" @onclick="BackToList">Back to list</button>
+}
+
+@code {
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "ReviewID")]
+    public int? ReviewID { get; set; }
+
+    private ApiDtos.ReviewDTO? review;
+    private bool isLoading = true;
+    private string? loadError;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (ReviewID == null)
+        {
+            loadError = "No ReviewID specified.";
+            isLoading = false;
+            return;
+        }
+
+        try
+        {
+            review = await apiservice.GetReviewDetailsAsync(ReviewID.Value);
+        }
+        catch (AppForSEII2526.Web.API.ApiException ex)
+        {
+            loadError = $"Error loading review: {ex.Message}";
+            logger.LogError(ex, "Error fetching review details for id {Id}", ReviewID);
+        }
+        catch (Exception ex)
+        {
+            loadError = "Unexpected error loading review.";
+            logger.LogError(ex, "Unexpected error fetching review details for id {Id}", ReviewID);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void BackToList() => navigation.NavigateTo("/reviews/listdevices");
+}
