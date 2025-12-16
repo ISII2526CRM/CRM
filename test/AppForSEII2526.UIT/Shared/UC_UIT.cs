@@ -122,5 +122,6 @@ namespace AppForMovies.UIT.Shared {
             _driver.Dispose();
             GC.SuppressFinalize(this);
         }
+
     }
 }

@@ -52,9 +52,13 @@
                         @foreach (var item in currentReview.ReviewItems)
                         {
                             <li class="list-group-item d-flex justify-content-between align-items-center">
-                                @* Aquí sí estabas mostrando el nombre *@
                                 <span>@item.DeviceName - @item.DeviceModel (@item.DeviceYear)</span>
-                                <button class="btn btn-sm btn-danger" @onclick="@(() => RemoveDevice(item.DeviceId))">Remove</button>
+
+                                <button class="btn btn-sm btn-danger"
+                                        id="btn_remove_@item.DeviceName"
+                                        @onclick="@(() => RemoveDevice(item.DeviceId))">
+                                    Remove
+                                </button>
                             </li>
                         }
                     </ul>
@@ -69,10 +73,10 @@
             <h5>Filter Devices</h5>
             <div class="input-group">
                 <span class="input-group-text">Brand</span>
-                <input type="text" class="form-control" @bind="filterBrand" placeholder="e.g. Apple...">
+                <input type="text" id="filterBrand" class="form-control" @bind="filterBrand" placeholder="e.g. Apple...">
 
                 <span class="input-group-text">Year</span>
-                <input type="number" class="form-control" @bind="filterYear" placeholder="e.g. 2024">
+                <input type="number" id="filterYear" class="form-control" @bind="filterYear" placeholder="e.g. 2024">
 
                 <button class="btn btn-outline-primary" id="searchDevices" @onclick="@SearchDevices">Search</button>
                 <button class="btn btn-outline-secondary" @onclick="@ClearFilters">Clear</button>
@@ -123,7 +127,11 @@
                                         }
                                         else
                                         {
-                                            <button class="btn btn-outline-secondary" @onclick="@(() => AddDevice(device))">Add to Review</button>
+                                            <button class="btn btn-outline-secondary"
+                                                    id="btn_add_@device.Name"
+                                                    @onclick="@(() => AddDevice(device))">
+                                                Add to Review
+                                            </button>
                                         }
                                     </td>
                                 </tr>
