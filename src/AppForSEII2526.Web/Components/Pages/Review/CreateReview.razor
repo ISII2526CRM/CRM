@@ -1,0 +1,263 @@
+@page "/reviews/createreview"
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Authorization
+@using AppForSEII2526.Web.API
+@using AppForSEII2526.Web.Components
+@using AppForSEII2526.Web.Components.Shared
+@inject AppForSEII2526APIClient apiservice
+@inject ReviewStateContainer reviewState
+@inject NavigationManager navigation
+
+@attribute [Authorize]
+
+<h3>Create Review</h3>
+
+@* Usamos OnValidSubmit: Solo abre el diálogo si Título y País están rellenos *@
+<EditForm Model="formModel" OnValidSubmit="OpenDialog">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="row mb-3">
+        <div class="col-md-6 form-floating">
+            <InputText @bind-Value="formModel.ReviewTitle" class="form-control" id="ReviewTitle" />
+            <label for="ReviewTitle">Review Title</label>
+        </div>
+        <div class="col-md-4 form-floating">
+            <InputText @bind-Value="formModel.CustomerCountry" class="form-control" id="CustomerCountry" />
+            <label for="CustomerCountry">Country</label>
+        </div>
+    </div>
+
+    <h5>Items to review (@reviewState.CurrentReview.ReviewItems.Count)</h5>
+
+    @if (!reviewState.CurrentReview.ReviewItems.Any())
+    {
+        <div class="alert alert-info">No devices selected. <a href="/reviews/listdevices">Select devices</a>.</div>
+    }
+    else
+    {
+        <div class="table-responsive mb-3">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Device</th>
+                        <th>Model</th>
+                        <th>Year</th>
+                        <th style="width:120px">Rating (1-5)</th>
+                        <th>Comment</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in reviewState.CurrentReview.ReviewItems)
+                    {
+                        @* Asumimos que tienes un componente ReviewItem para editar la fila *@
+                        <ReviewItem Item="item" OnRemovedItem="RemoveItem" OnChanged="StateHasChanged" />
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button class="btn btn-primary" type="submit">Submit Review</button>
+            <button class="btn btn-secondary" type="button" @onclick="Cancel">Cancel</button>
+        </div>
+    }
+</EditForm>
+
+@* --- COMPONENTES DE DIÁLOGO --- *@
+
+@if (DialogIsOpen)
+{
+    <Dialog Caption="Submit review"
+            Message="Do you want to proceed to submit this review?"
+            OnClose="@OnDialogClose"
+            Type=Dialog.Category.SaveNot>
+    </Dialog>
+}
+
+@if (DialogOKIsOpen)
+{
+    <Dialog Caption="@DialogTitle"
+            Message="@DialogOKMessage"
+            OnClose="@OnDialogOKClose"
+            Type=Dialog.Category.Okay>
+    </Dialog>
+}
+
+@code {
+    // === MODELO DEL FORMULARIO ===
+    private class FormModel
+    {
+        [Required(ErrorMessage = "El título es obligatorio")]
+        public string ReviewTitle { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "El país es obligatorio")]
+        public string CustomerCountry { get; set; } = string.Empty;
+    }
+
+    private FormModel formModel = new();
+
+    // === ESTADO ===
+    private bool DialogIsOpen = false;
+    private bool DialogOKIsOpen = false;
+    private string DialogOKMessage = "";
+    private string DialogTitle = "Error";
+    private string CurrentUsername = "Anonymous";
+
+    [CascadingParameter]
+    private Task<AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    // === INICIALIZACIÓN ===
+    protected override async Task OnInitializedAsync()
+    {
+        // Cargamos el usuario actual
+        if (AuthenticationStateTask is not null)
+        {
+            var authState = await AuthenticationStateTask;
+            var user = authState?.User;
+
+            if (user is not null && user.Identity is not null && user.Identity.IsAuthenticated)
+            {
+                CurrentUsername = user.Identity.Name ?? "Anonymous";
+            }
+        }
+    }
+
+    // === LÓGICA DE VALIDACIÓN ===
+    private void OpenDialog()
+    {
+        // Validación extra: Debe haber dispositivos seleccionados
+        if (!reviewState.CurrentReview.ReviewItems.Any())
+        {
+            OpenDialogOK("Debe seleccionar al menos un dispositivo.", "Faltan datos");
+            return;
+        }
+        DialogIsOpen = true;
+    }
+
+    // === ENVÍO AL SERVIDOR ===
+    private async Task OnDialogClose(bool isOk)
+    {
+        DialogIsOpen = false;
+        StateHasChanged();
+
+        if (isOk)
+        {
+            try
+            {
+                // 1. Preparamos los comentarios (Regla "Reseña para...")
+                PrepareItemsForSubmission();
+
+                // 2. Construimos el DTO
+                var createDto = new AppForSEII2526.Web.API.CreateReviewDTO
+                {
+                    ReviewTitle = formModel.ReviewTitle,
+                    CustomerCountry = formModel.CustomerCountry,
+                    Username = CurrentUsername,
+
+                    // Mapeamos solo ID, Rating y Comment. El resto null/0 para evitar problemas.
+                    ReviewItems = reviewState.CurrentReview.ReviewItems.Select(ri => new AppForSEII2526.Web.API.ReviewItemDTO
+                    {
+                        DeviceId = ri.DeviceId,
+                        Rating = ri.Rating,
+                        Comment = ri.Comment,
+
+                        DeviceName = null,
+                        DeviceModel = null,
+                        DeviceYear = 0
+                    }).ToList()
+                };
+
+                // 3. Llamada a la API
+                var result = await apiservice.CreateAsync(createDto);
+
+                // 4. Limpiamos la sesión (el carrito)
+                reviewState.RestartSession();
+
+                // 5. Intentamos obtener el ID nuevo para redirigir
+                int newId = 0;
+                if (result != null)
+                {
+                    try
+                    {
+                        var prop = result.GetType().GetProperty("ReviewId");
+                        if (prop != null) newId = (int)prop.GetValue(result);
+                    }
+                    catch { }
+                }
+
+                if (newId > 0)
+                {
+                    navigation.NavigateTo($"/reviews/detailreview?ReviewID={newId}");
+                }
+                else
+                {
+                    // Si se creó pero no tenemos ID, volvemos a la lista
+                    navigation.NavigateTo("/reviews/listdevices");
+                }
+
+            }
+            catch (AppForSEII2526.Web.API.ApiException<AppForSEII2526.Web.API.ValidationProblemDetails> exVal)
+            {
+                // Manejo de errores de validación (400 Bad Request)
+                string message = "Datos inválidos:";
+                if (exVal.Result.Errors != null)
+                {
+                    message = "";
+                    foreach (var errors in exVal.Result.Errors.Values)
+                        message = string.Join("\n", message, string.Join("\n", errors));
+                }
+                OpenDialogOK(message, "Error de Validación");
+            }
+            catch (AppForSEII2526.Web.API.ApiException ex)
+            {
+                OpenDialogOK($"Error del servidor ({ex.StatusCode}): {ex.Message}", "Error API");
+            }
+            catch (Exception ex)
+            {
+                OpenDialogOK($"Error inesperado: {ex.Message}", "Error");
+            }
+        }
+    }
+
+    // === MÉTODOS AUXILIARES ===
+
+    // Asegura que los comentarios cumplan la regla del backend
+    private void PrepareItemsForSubmission()
+    {
+        foreach (var it in reviewState.CurrentReview.ReviewItems)
+        {
+            it.Comment = (it.Comment ?? string.Empty).Trim();
+            if (!it.Comment.StartsWith("Reseña para", StringComparison.OrdinalIgnoreCase))
+            {
+                string devName = !string.IsNullOrWhiteSpace(it.DeviceName) ? it.DeviceName : "dispositivo";
+                it.Comment = $"Reseña para {devName}: {it.Comment}";
+            }
+        }
+    }
+
+    private void RemoveItem(int deviceId)
+    {
+        reviewState.RemoveDevice(deviceId);
+    }
+
+    private void Cancel()
+    {
+        navigation.NavigateTo("/reviews/listdevices");
+    }
+
+    private void OpenDialogOK(string message, string title = "Aviso")
+    {
+        DialogTitle = title;
+        DialogOKMessage = message;
+        DialogOKIsOpen = true;
+        StateHasChanged();
+    }
+
+    private Task OnDialogOKClose()
+    {
+        DialogOKIsOpen = false;
+        return Task.CompletedTask;
+    }
+}

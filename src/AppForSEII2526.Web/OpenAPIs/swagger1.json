@@ -362,8 +362,8 @@
           }
         },
         "responses": {
-          "201": {
-            "description": "Created",
+          "200": {
+            "description": "OK",
             "content": {
               "text/plain": {
                 "schema": {
@@ -499,6 +499,10 @@
             "type": "integer",
             "format": "int32"
           },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
           "brand": {
             "type": "string",
             "nullable": true
@@ -551,7 +555,7 @@
             "nullable": true
           }
         },
-        "additionalProperties": { }
+        "additionalProperties": {}
       },
       "RentDeviceDTO": {
         "type": "object",
@@ -651,6 +655,10 @@
       "ReviewDTO": {
         "type": "object",
         "properties": {
+          "reviewId": {
+            "type": "integer",
+            "format": "int32"
+          },
           "username": {
             "type": "string",
             "nullable": true
@@ -746,7 +754,7 @@
             "nullable": true
           }
         },
-        "additionalProperties": { }
+        "additionalProperties": {}
       }
     }
   }

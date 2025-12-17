@@ -46,6 +46,7 @@ namespace AppForSEII2526.API.Controllers
             var devices = await query // <-- Usar 'query' en lugar de '_context.Device'
             .Select(m => new DevicesReseñaDTO(
                 m.Id,
+                m.Name,
                 m.Brand,
                 m.Color,
                 m.Year,

@@ -90,7 +90,7 @@ using (var scope = app.Services.CreateScope()) {
 
 
         //it sees the database
-        //SeedData.Initialize(db, scope.ServiceProvider, logger);
+        AppForSEII2526.API.Data.SeedData.Initialize(scope.ServiceProvider, logger);
     }
     catch (Exception ex) {
         logger.LogError(ex, "An error occurred seeding the DB.");
