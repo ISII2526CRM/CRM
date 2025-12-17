@@ -26,7 +26,7 @@ namespace AppForSEII2526.UIT.ReviewDevices
             var brandInput = _driver.FindElement(By.Id("filterBrand"));
             brandInput.Clear();
             brandInput.SendKeys(brand);
-            Thread.Sleep(500); // Dar tiempo a Blazor para procesar el binding
+            Thread.Sleep(500); // Dar tiempo a Blazor 
         }
 
         if (!string.IsNullOrEmpty(year))
@@ -37,81 +37,90 @@ namespace AppForSEII2526.UIT.ReviewDevices
             Thread.Sleep(500);
         }
 
-        // Click en buscar y espera IMPORTANTE para que la tabla se refresque
+        // Click en buscar y espera
         _driver.FindElement(By.Id("searchDevices")).Click();
         Thread.Sleep(1500);
     }
 
-    public void SelectDevices(List<string> devicesToSelect)
-    {
-        // Aseguramos que la tabla es visible antes de empezar
-        WaitForBeingVisibleIgnoringExeptionTypes(By.Id("TableOfDevices"));
-
-        foreach (var deviceName in devicesToSelect)
+        public void SelectDevices(List<string> devicesToSelect)
         {
-            // LÓGICA INTELIGENTE:
-            // Intentamos encontrar el botón de añadir usando XPath (maneja espacios mejor que ID)
-            // XPath busca: un botón cuyo ID sea 'btn_add_NombreDispositivo'
-            var xpathAdd = $"//button[@id='btn_add_{deviceName}']";
-            var buttonsAdd = _driver.FindElements(By.XPath(xpathAdd));
+            // Esperamos que la tabla sea visible
+            WaitForBeingVisibleIgnoringExeptionTypes(By.Id("TableOfDevices"));
 
-            if (buttonsAdd.Count > 0)
+            foreach (var deviceName in devicesToSelect)
             {
-                // CASO 1: El botón de añadir existe -> Lo pulsamos
-                buttonsAdd[0].Click();
-                Thread.Sleep(1000); // Esperamos a que se procese la acción
-            }
-            else
-            {
-                // CASO 2: No está el botón de añadir. ¿Quizás ya está seleccionado?
-                // Buscamos si en la fila de ese dispositivo hay un botón que ponga "Selected"
-                var xpathSelected = $"//tr[contains(., '{deviceName}')]//button[contains(text(), 'Selected')]";
-                if (_driver.FindElements(By.XPath(xpathSelected)).Count > 0)
+                // El Razor ahora genera IDs con guiones bajos (XPS_15).
+                // Tenemos que transformar el nombre igual que lo hace el Razor.
+                var safeName = deviceName.Replace(" ", "_");
+
+                // Buscamos el ID exacto: 'btn_add_XPS_15'
+                var xpathAdd = $"//button[@id='btn_add_{safeName}']";
+                var buttonsAdd = _driver.FindElements(By.XPath(xpathAdd));
+
+                if (buttonsAdd.Count > 0)
                 {
-                    // Ya estaba seleccionado. No hacemos nada y seguimos.
-                    // Esto evita que el test falle si repites la prueba sin limpiar la BD.
+                    // Encontrado el botón de añadir -> Click
+                    buttonsAdd[0].Click();
+
+                    // Espera para que Blazor procese el clic y cambie el botón a verde
+                    System.Threading.Thread.Sleep(1000);
                 }
                 else
                 {
-                    // CASO 3: Ni botón Add ni botón Selected. El dispositivo no está en la lista.
-                    throw new Exception($"ERROR: No encuentro el dispositivo '{deviceName}' en la tabla con los filtros actuales.");
+                    // No encuentro el botón Add.
+                    // Aquí buscamos por texto dentro de la fila, así que el ID no importa tanto.
+                    var xpathSelected = $"//tr[contains(., '{deviceName}')]//button[contains(text(), 'Selected')]";
+
+                    if (_driver.FindElements(By.XPath(xpathSelected)).Count > 0)
+                    {
+                        // Ya estaba seleccionado. Todo ok.
+                    }
+                    else
+                    {
+
+                        // No encuentro ni el botón Add ni el botón Selected
+                        throw new Exception($"ERROR: Veo la tabla, pero no encuentro el botón con ID 'btn_add_{safeName}' para el dispositivo '{deviceName}'.");
+                    }
                 }
             }
         }
-    }
 
-    public void RemoveDeviceFromCart(string deviceName)
-    {
-        // PASO 1: Garantizar que el carrito está visible
-        var btnToggle = _driver.FindElement(By.Id("showReviewCart"));
 
-        // Si el botón dice "Show", significa que el carrito está oculto. Click para abrir.
-        if (btnToggle.Text.Contains("Show"))
+        public void RemoveDeviceFromCart(string deviceName)
         {
-            btnToggle.Click();
-            Thread.Sleep(1000); // Esperamos la animación de apertura
+            var btnToggle = _driver.FindElement(By.Id("showReviewCart"));
+            if (btnToggle.Text.Contains("Show"))
+            {
+                btnToggle.Click();
+                System.Threading.Thread.Sleep(500);
+            }
+
+            var safeName = deviceName.Replace(" ", "_");
+            var buttonId = $"btn_remove_{safeName}";
+
+            try
+            {
+                var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(5));
+
+                // Espera manual hasta que el elemento sea visible y esté habilitado
+                var btnRemove = wait.Until(d =>
+                {
+                    var el = d.FindElement(By.Id(buttonId));
+                    return (el != null && el.Displayed && el.Enabled) ? el : null;
+                });
+
+                btnRemove.Click();
+
+                // Esperar a que desaparezca
+                System.Threading.Thread.Sleep(2000);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error al borrar '{buttonId}': {ex.Message}");
+            }
         }
 
-        // PASO 2: Buscar el botón de borrar y pulsarlo
-        // Usamos XPath porque el ID tiene espacios ("XPS 15") y By.Id falla a veces.
-        try
-        {
-            var xpathRemove = $"//button[@id='btn_remove_{deviceName}']";
-            var btnRemove = _driver.FindElement(By.XPath(xpathRemove));
-
-            btnRemove.Click();
-
-            // PASO 3: Espera crítica para que Blazor actualice el estado
-            // El botón "Review" debe pasar a Disabled.
-            Thread.Sleep(2000);
-        }
-        catch (NoSuchElementException)
-        {
-            throw new Exception($"El carrito está abierto pero no encuentro el botón 'Remove' para '{deviceName}'.");
-        }
-    }
-
-    public void ClickReviewDevices()
+        public void ClickReviewDevices()
     {
         _driver.FindElement(By.Id("StartReview")).Click();
     }
@@ -139,5 +148,38 @@ namespace AppForSEII2526.UIT.ReviewDevices
         // Devolvemos true si NO está habilitado
         return !btn.Enabled;
     }
-}
+
+
+        public void ClearFilters()
+        {
+            // Espera de seguridad
+            System.Threading.Thread.Sleep(1000);
+
+            // Definimos cómo buscar el botón
+            var locator = By.XPath("//button[contains(text(), 'Clear')]");
+
+            try
+            {
+                // Buscar y Clickar
+                var btnClear = _driver.FindElement(locator);
+                btnClear.Click();
+            }
+            catch (StaleElementReferenceException)
+            {
+                // EXCEPCIÓN CAZADA
+
+                System.Threading.Thread.Sleep(500); // Pequeña pausa para asegurar
+                var btnClear = _driver.FindElement(locator);
+                btnClear.Click();
+            }
+            catch (NoSuchElementException)
+            {
+                
+            }
+
+            // Esperamos a que la tabla se recargue 
+            System.Threading.Thread.Sleep(1500);
+        }
+    }
+
 }

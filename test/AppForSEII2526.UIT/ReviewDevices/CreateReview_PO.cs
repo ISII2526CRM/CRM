@@ -1,130 +1,132 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 using OpenQA.Selenium;
-using OpenQA.Selenium.Support.UI;
-using Xunit.Abstractions; // Necesario para ITestOutputHelper
+using Xunit.Abstractions;
 
 namespace AppForSEII2526.UIT.ReviewDevices
 {
-    
     public class CreateReview_PO : PageObject
     {
-    public CreateReview_PO(IWebDriver driver, ITestOutputHelper output) : base(driver, output)
+        public CreateReview_PO(IWebDriver driver, ITestOutputHelper output) : base(driver, output)
         {
         }
 
-    public void FillInReviewInfo(string title, string country)
-    {
-        Thread.Sleep(1000); // Espera de seguridad al cargar la página
-
-        if (!string.IsNullOrEmpty(title))
+        public void FillInReviewInfo(string title, string country)
         {
-            var txtTitle = _driver.FindElement(By.Id("ReviewTitle"));
-            txtTitle.Clear();
-            txtTitle.SendKeys(title);
-        }
+            Thread.Sleep(1500); // Espera vital para que cargue la página nueva
 
-        if (!string.IsNullOrEmpty(country))
-        {
-            var txtCountry = _driver.FindElement(By.Id("CustomerCountry"));
-            txtCountry.Clear();
-            txtCountry.SendKeys(country);
+            if (!string.IsNullOrEmpty(title))
+            {
+                var el = _driver.FindElement(By.Id("ReviewTitle"));
+                el.Clear(); el.SendKeys(title);
+            }
+            if (!string.IsNullOrEmpty(country))
+            {
+                var el = _driver.FindElement(By.Id("CustomerCountry"));
+                el.Clear(); el.SendKeys(country);
+            }
         }
-    }
 
         public void FillInRatingAndComment(string rating, string comment)
         {
-            // --- 1. CAMBIAR EL RATING ---
+           
             if (!string.IsNullOrEmpty(rating))
             {
-                // Buscamos el input numérico dentro de la tabla (para no confundirlo con otros)
-                // Usamos XPath para ir a lo seguro: primer input numérico en el cuerpo de la tabla
-                var txtRating = _driver.FindElement(By.XPath("//tbody//input[@type='number']"));
-
-                // TRUCO PRO: Los inputs numéricos a veces fallan con .Clear()
-                // Lo mejor es: Seleccionar todo (Ctrl+A) -> Borrar -> Escribir
+                var txtRating = _driver.FindElement(By.CssSelector("input[type='number']"));
                 txtRating.SendKeys(Keys.Control + "a");
                 txtRating.SendKeys(Keys.Backspace);
-
-                // Escribimos el número
                 txtRating.SendKeys(rating);
-
-                // ¡LA CLAVE! Pulsamos TAB para salir del campo.
-                // Esto obliga a Blazor a disparar el evento "OnChange" y guardar el valor en la variable.
-                txtRating.SendKeys(Keys.Tab);
-
-                // Esperamos medio segundo a que Blazor procese el cambio
+                txtRating.SendKeys(Keys.Tab); // Obliga a Blazor a guardar
                 Thread.Sleep(500);
             }
 
-            // --- 2. CAMBIAR EL COMENTARIO ---
+            
             if (!string.IsNullOrEmpty(comment))
             {
-                // Buscamos el área de texto (textarea) o el input de texto en la tabla
-                // Probamos primero con textarea, si no lo encuentra, busca input texto
+                // Intenta textarea, si falla busca input text
                 IWebElement txtComment;
-                try
-                {
-                    txtComment = _driver.FindElement(By.XPath("//tbody//textarea"));
-                }
-                catch
-                {
-                    // Si tu componente usa un input normal en vez de textarea
-                    txtComment = _driver.FindElement(By.XPath("//tbody//input[@type='text']"));
-                }
+                try { txtComment = _driver.FindElement(By.TagName("textarea")); }
+                catch { txtComment = _driver.FindElement(By.CssSelector("input[type='text']")); }
 
                 txtComment.Clear();
                 txtComment.SendKeys(comment);
-
-                // También pulsamos Tab aquí por seguridad
                 txtComment.SendKeys(Keys.Tab);
                 Thread.Sleep(500);
             }
         }
+
         public void PressSaveReview()
-    {
-        // PASO 1: Clic en "Submit Review" (Esto abre el Modal)
-        var btnSubmit = _driver.FindElement(By.XPath("//button[@type='submit']"));
-        btnSubmit.Click();
-
-        // PASO 2: Esperar a que aparezca el Modal de confirmación
-        Thread.Sleep(1000);
-
-        // PASO 3: Confirmar en el Modal
-        // Buscamos el botón que confirma la acción dentro del diálogo.
-        // Normalmente en tus diálogos es el botón primario o dice "Yes"/"Save"
-        try
         {
-            // Intento 1: Buscar por clase de botón primario dentro del modal
-            var btnConfirm = _driver.FindElement(By.XPath("//button[contains(text(), 'Submit') or contains(text(), 'Yes')]"));
-                btnConfirm.Click();
-        }
-        catch
-        {
-            // Intento 2: Buscar por texto "Save" o "Yes" si el anterior falla
-            var btnConfirm = _driver.FindElement(By.XPath("//button[contains(text(), 'Submit') or contains(text(), 'Yes')]"));
-            btnConfirm.Click();
+            // 1. Click en Submit (Buscando por texto para no darle a Remove)
+            var btnSubmit = _driver.FindElement(By.XPath("//button[contains(text(), 'Submit Review')]"));
+            btnSubmit.Click();
+            Thread.Sleep(1000);
+
+            // 2. Confirmar Modal
+            try
+            {
+                // Intenta botón primario del modal
+                _driver.FindElement(By.CssSelector(".modal-content .btn-primary")).Click();
+            }
+            catch
+            {
+                // Intenta por texto
+                _driver.FindElement(By.XPath("//button[contains(text(), 'Save') or contains(text(), 'Yes')]")).Click();
+            }
+
+            Thread.Sleep(3000); // Espera navegación final
         }
 
-        // PASO 4: Espera final para la navegación a Detalles
-        // Ahora sí que navega de verdad
-        Thread.Sleep(3000);
-    }
+        public void PressCancel()
+        {
+            _driver.FindElement(By.XPath("//button[contains(text(), 'Cancel')]")).Click();
+            Thread.Sleep(1000);
+        }
 
-    public void PressCancel()
-    {
-        var btnCancel = _driver.FindElement(By.XPath("//button[contains(text(), 'Cancel')]"));
-        btnCancel.Click();
-        Thread.Sleep(1000);
-    }
+        public bool CheckValidationError(string expectedError)
+        {
+            // 1. Esperamos un poco a que aparezca el mensaje rojo
+            System.Threading.Thread.Sleep(1000);
 
-    public bool CheckValidationError(string errorMessage)
-    {
-        Thread.Sleep(1000); // Esperar a que el validador muestre el mensaje
-        return _driver.PageSource.Contains(errorMessage);
+            try
+            {
+               
+                // Buscamos elementos que Blazor usa para mostrar errores
+
+                var errorElements = _driver.FindElements(By.CssSelector(".validation-message, .validation-summary-errors li, .text-danger, ul li"));
+
+                foreach (var element in errorElements)
+                {
+                    // Limpiamos espacios y saltos de línea para comparar mejor
+                    string actualText = element.Text.Trim();
+
+                    
+
+                    if (!string.IsNullOrEmpty(actualText) && actualText.Contains(expectedError, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return true; 
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // Si falla la búsqueda específica, no pasa nada, devolvemos false.
+            }
+
+            
+            return _driver.PageSource.Contains(expectedError);
+        }
+
+
+        public void PressSubmit_ExpectingError()
+        {
+            // Solo hacemos clic en Submit. 
+            // NO buscamos el modal porque si hay error, el modal no saldrá.
+            var btnSubmit = _driver.FindElement(By.XPath("//button[contains(text(), 'Submit Review')]"));
+            btnSubmit.Click();
+
+            // Esperamos un poco a que aparezcan los mensajes rojos
+            System.Threading.Thread.Sleep(1000);
+        }
     }
-}
 }

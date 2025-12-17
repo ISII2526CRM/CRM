@@ -37,7 +37,7 @@
         </div>
     </div>
 
-    @* CARRITO DESPLEGABLE (Vista previa de lo seleccionado) *@
+    @* CARRITO *@
     <div class="row mb-3" hidden="@hiddenReviewCart">
         <div class="col-12">
             <div class="card p-3">
@@ -54,8 +54,9 @@
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <span>@item.DeviceName - @item.DeviceModel (@item.DeviceYear)</span>
 
+                                @* ID SÓLIDO SIN ESPACIOS *@
                                 <button class="btn btn-sm btn-danger"
-                                        id="btn_remove_@item.DeviceName"
+                                        id="btn_remove_@item.DeviceName.Replace(" ", "_")"
                                         @onclick="@(() => RemoveDevice(item.DeviceId))">
                                     Remove
                                 </button>
@@ -114,7 +115,7 @@
                             @foreach (var device in Devices)
                             {
                                 <tr id="Device_@device.Id">
-                                    @* 2. AÑADIDO: Dato Name *@
+                                    @* AÑADIDO: Dato Name *@
                                     <td>@device.Name</td>
                                     <td>@device.Brand</td>
                                     <td>@device.Model</td>
@@ -128,7 +129,7 @@
                                         else
                                         {
                                             <button class="btn btn-outline-secondary"
-                                                    id="btn_add_@device.Name"
+                                                    id="btn_add_@device.Name.Replace(" ", "_")"
                                                     @onclick="@(() => AddDevice(device))">
                                                 Add to Review
                                             </button>
@@ -202,7 +203,7 @@
                 Devices = result
                     .Select(d => new ApiDtos.DevicesReseñaDTO(
                         d.Id,
-                        d.Name, // Ya lo estabas cargando aquí, así que funcionará directo
+                        d.Name, 
                         d.Brand ?? "",
                         d.Color ?? "",
                         d.Year,

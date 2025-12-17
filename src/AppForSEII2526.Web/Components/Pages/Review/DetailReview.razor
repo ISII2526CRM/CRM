@@ -106,7 +106,7 @@ else
     {
         string currentUserName = "";
 
-        // 1. Obtener usuario logueado
+        // Obtener usuario logueado
         if (authenticationState is not null)
         {
             var authState = await authenticationState;
@@ -118,7 +118,7 @@ else
             }
         }
 
-        // 2. Llamada a la API
+        // Llamada a la API
         try
         {
             review = await apiservice.GetReviewDetailsAsync(ReviewID);
@@ -129,7 +129,7 @@ else
             error = $"Error fetching review (Status: {exception.StatusCode})";
         }
 
-        // 3. Verificación de Seguridad
+        // Verificación de Seguridad
         if (review != null)
         {
             // Solo permitimos ver la reseña si eres el dueño o es anónima

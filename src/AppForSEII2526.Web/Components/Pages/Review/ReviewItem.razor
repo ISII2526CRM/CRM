@@ -21,7 +21,8 @@
             </div>
 
             <div class="ms-3">
-                <button class="btn btn-sm btn-outline-danger" title="Remove" @onclick="RemoveItem">
+                @* Añadido type="button" para que no haga submit *@
+                <button type="button" class="btn btn-sm btn-outline-danger" title="Remove" @onclick="RemoveItem">
                     <span class="bi bi-trash"></span>
                 </button>
             </div>
