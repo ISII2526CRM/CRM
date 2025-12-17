@@ -69,7 +69,7 @@ VALUES (
     'alice@test.com', 'ALICE@TEST.COM',      -- UserName (Normal y Mayúsculas)
     'alice@test.com', 'ALICE@TEST.COM',      -- Email (Normal y Mayúsculas)
     1,                                       -- Email Confirmado (True)
-    'AQAAAAIAAYagAAAAELhRvI/wEgy6nh17TyzxsPoZopxw9W6lsTQKurI3thyB5q78vGtMpEP+hwab3wFuJA==', -- Hash de "Password123!" (aproximado)
+    'AQAAAAIAAYagAAAAELhRvI/wEgy6nh17TyzxsPoZopxw9W6lsTQKurI3thyB5q78vGtMpEP+hwab3wFuJA==', -- Hash de "Password.123" (aproximado)
     'DUMMYSECURITYSTAMP',                    -- Security Stamp
     'DUMMYCONCURRENCYSTAMP',                 -- Concurrency Stamp
     0, 0, 1, 0                               -- Flags varios por defecto
