@@ -255,7 +255,7 @@
         [Theory]
         [InlineData("Review Perfecta", "Spain", "5", "Excelente dispositivo")]
         [Trait("LevelTesting", "Funcional Testing")]
-        public void Sprint3(string title, string country, string rating, string comment)
+        public void Sprint3Examen(string title, string country, string rating, string comment)
         {
             // Arrange
             var createReviewPO = new CreateReview_PO(_driver, _output);
@@ -269,9 +269,10 @@
             _listDevicesPO.FilterDevices(Device1_Brand, Device1_Year);
             _listDevicesPO.SelectDevices(new List<string> { Device1_Name });
 
+            _listDevicesPO.FilterDevices("","");
 
             // Arrange
-            var expectedList = new List<string[]> {
+            var expectedListSprint3 = new List<string[]> {
                     new string[] { "", "", "" } // Ajusta columnas a tu tabla real
                 };
 
@@ -281,7 +282,7 @@
             _listDevicesPO.FilterDevices(Device2_Brand, "");
             _listDevicesPO.SelectDevices(new List<string> { Device2_Name });
 
-            Assert.True(_listDevicesPO.CheckListOfDevices(expectedList));
+            Assert.True(_listDevicesPO.CheckListOfDevices(expectedListSprint3));
 
 
         }
