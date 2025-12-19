@@ -117,6 +117,34 @@ namespace AppForSEII2526.UIT.ReviewDevices
             return _driver.PageSource.Contains(expectedError);
         }
 
+        public void RemoveDevice(string deviceName)
+        {
+
+            var safeName = deviceName.Replace(" ", "_");
+            var buttonId = $"btn_remove_{safeName}";
+
+            try
+            {
+                var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(5));
+
+                // Espera manual hasta que el elemento sea visible y esté habilitado
+                var btnRemove = wait.Until(d =>
+                {
+                    var el = d.FindElement(By.Id(buttonId));
+                    return (el != null && el.Displayed && el.Enabled) ? el : null;
+                });
+
+                btnRemove.Click();
+
+                // Esperar a que desaparezca
+                System.Threading.Thread.Sleep(2000);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error al borrar '{buttonId}': {ex.Message}");
+            }
+        }
+
 
         public void PressSubmit_ExpectingError()
         {

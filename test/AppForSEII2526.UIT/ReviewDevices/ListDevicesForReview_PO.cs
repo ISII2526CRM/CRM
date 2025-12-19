@@ -88,13 +88,7 @@ namespace AppForSEII2526.UIT.ReviewDevices
 
         public void RemoveDeviceFromCart(string deviceName)
         {
-            var btnToggle = _driver.FindElement(By.Id("showReviewCart"));
-            if (btnToggle.Text.Contains("Show"))
-            {
-                btnToggle.Click();
-                System.Threading.Thread.Sleep(500);
-            }
-
+           
             var safeName = deviceName.Replace(" ", "_");
             var buttonId = $"btn_remove_{safeName}";
 

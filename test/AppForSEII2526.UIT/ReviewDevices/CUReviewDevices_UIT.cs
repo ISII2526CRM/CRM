@@ -22,8 +22,13 @@
             private const string Device1_Brand = "Dell";
             private const string Device1_Year = "2023";
 
-            // Constructor
-            public CUReviewDevices_UIT(ITestOutputHelper outputHelper) : base(outputHelper)
+            private const string Device2_Name = "MX Keys S";
+            private const string Device2_Brand = "Logitech";
+            private const string Device2_Year = "2024";
+
+
+        // Constructor
+        public CUReviewDevices_UIT(ITestOutputHelper outputHelper) : base(outputHelper)
             {
                 // 1. Abrimos el navegador (Método de UC_UIT)
                 Initial_step_opening_the_web_page();
@@ -242,5 +247,44 @@
 
             
         }
+
+
+
+
+        // TC-EXAMEN_SPRINT
+        [Theory]
+        [InlineData("Review Perfecta", "Spain", "5", "Excelente dispositivo")]
+        [Trait("LevelTesting", "Funcional Testing")]
+        public void Sprint3(string title, string country, string rating, string comment)
+        {
+            // Arrange
+            var createReviewPO = new CreateReview_PO(_driver, _output);
+            var detailsPO = new ReviewDetails_PO(_driver, _output);
+
+            // Act
+            InitialStepsForReviewDevices();
+
+            // 1. Selección
+            // Usamos FilterDevices para asegurar que elegimos el correcto sin fallos
+            _listDevicesPO.FilterDevices(Device1_Brand, Device1_Year);
+            _listDevicesPO.SelectDevices(new List<string> { Device1_Name });
+
+
+            // Arrange
+            var expectedList = new List<string[]> {
+                    new string[] { "", "", "" } // Ajusta columnas a tu tabla real
+                };
+
+            // Act
+            InitialStepsForReviewDevices();
+            _listDevicesPO.SelectDevices(new List<string> { Device1_Name });
+            _listDevicesPO.FilterDevices(Device2_Brand, "");
+            _listDevicesPO.SelectDevices(new List<string> { Device2_Name });
+
+            Assert.True(_listDevicesPO.CheckListOfDevices(expectedList));
+
+
+        }
+
     }
     }
