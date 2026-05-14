@@ -79,6 +79,8 @@ namespace AppForSEII2526.UIT.ReviewDevices
 
         public void PressCancel()
         {
+            System.Threading.Thread.Sleep(1500);
+
             _driver.FindElement(By.XPath("//button[contains(text(), 'Cancel')]")).Click();
             Thread.Sleep(1000);
         }

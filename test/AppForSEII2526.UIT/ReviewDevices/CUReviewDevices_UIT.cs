@@ -14,39 +14,34 @@
         public class CUReviewDevices_UIT : UC_UIT
         {
             private const string URI = "https://localhost:7083/";
-            // Variable privada para el PageObject inicial
+            
             private ListDevicesForReview_PO _listDevicesPO;
 
-            // CONSTANTES PARA DATOS DE PRUEBA (Deben coincidir con tu BD/Seed)
             private const string Device1_Name = "XPS 15";
             private const string Device1_Brand = "Dell";
             private const string Device1_Year = "2023";
+            private const string Device1_Model = "Standard"; 
 
-            // Constructor
-            public CUReviewDevices_UIT(ITestOutputHelper outputHelper) : base(outputHelper)
+        // Constructor
+        public CUReviewDevices_UIT(ITestOutputHelper outputHelper) : base(outputHelper)
             {
-                // 1. Abrimos el navegador (Método de UC_UIT)
                 Initial_step_opening_the_web_page();
 
-                // 2. Inicializamos el PO de la lista para empezar a trabajar
                 _listDevicesPO = new ListDevicesForReview_PO(_driver, _output);
             }
 
-            // --- MÉTODOS AUXILIARES (Precondiciones) ---
-
             private void Precondition_perform_login()
             {
-                // Ajusta usuario y contraseña válidos
                 Perform_login("alice@test.com", "Password.123");
             }
 
         private void InitialStepsForReviewDevices()
         {
             Precondition_perform_login();
-            // Navegación explícita siempre
+            
             _driver.Navigate().GoToUrl(URI + "reviews/listdevices");
-            // Espera a que la tabla exista para confirmar que hemos llegado
-            // _listDevicesPO.WaitForBeingVisibleIgnoringExeptionTypes(By.Id("TableOfDevices")); 
+            
+            
         }
 
         // --- CASOS DE PRUEBA (TEST CASES) ---
@@ -85,7 +80,6 @@
             }
 
         // TC-05: Eliminar del carrito (Flujo Alternativo 1)
-        [Fact(Skip ="No se ha conseguido que en la prueba se termine removiendo el dispostivo de la lista para la review (en el caso real funcionaría)")]
         [Trait("LevelTesting", "Funcional Testing")]
         public void UC3_AF1_RemoveDeviceFromCart()
         {
@@ -210,21 +204,15 @@
             // Act
             InitialStepsForReviewDevices();
 
-            // 1. Selección
-            // Usamos FilterDevices para asegurar que elegimos el correcto sin fallos
             _listDevicesPO.FilterDevices(Device1_Brand, Device1_Year);
             _listDevicesPO.SelectDevices(new List<string> { Device1_Name });
             _listDevicesPO.ClickReviewDevices();
 
-            // 2. Creación
             createReviewPO.FillInReviewInfo(title, country);
             createReviewPO.FillInRatingAndComment(rating, comment);
             createReviewPO.PressSaveReview();
 
-            // 3. Verificación (Asserts) - VERSIÓN ROBUSTA 💪
-
-            // A) PRIMER CHEQUEO: ¿Hemos cambiado de página?
-            // Esperamos hasta 5 segundos a que la URL contenga "detailreview"
+            
             try
             {
                 var wait = new OpenQA.Selenium.Support.UI.WebDriverWait(_driver, TimeSpan.FromSeconds(5));
@@ -232,12 +220,9 @@
             }
             catch
             {
-                // Si falla el wait, hacemos el Assert para que salga el error bonito
                 Assert.Contains("detailreview", _driver.Url.ToLower());
             }
 
-            // B) SEGUNDO CHEQUEO: Solo validamos lo fundamental (Título y País)
-            // Pasamos 'null' o string vacía al usuario para que NO lo compruebe y no falle por eso.
             Assert.True(detailsPO.CheckReviewDetails(title, country, ""), "El título o país en detalles no coincide");
 
             
