@@ -52,7 +52,7 @@ cantidad, todos ellos campos obligatorios.*/
 
             var rentalWithoInvalidSurname = new RentalForCreateDTO(_name, "", _deliveryAddress, _paymentMethod, _quantity);
 
-            var rentalWithoutDeliveryAddress = new RentalForCreateDTO(_name, _surname, "", _paymentMethod, _quantity);
+            var rentalWithInvalidDeliveryAddress = new RentalForCreateDTO(_name, _surname, "C/ Rosario", _paymentMethod, _quantity);
 
             var rentalInvalidPaymentMethod = new RentalForCreateDTO(_name, _surname, _deliveryAddress, PaymentMethodType.Cash, _quantity);
 
@@ -62,7 +62,7 @@ cantidad, todos ellos campos obligatorios.*/
             var allTest = new List<object[]> {
                 new object[] { rentalWithInvalidName, "Error! No se encontró ningún usuario con el nombre y apellido proporcionados.", },
                 new object[] { rentalWithoInvalidSurname, "Error! No se encontró ningún usuario con el nombre y apellido proporcionados.", },
-                new object[] { rentalWithoutDeliveryAddress, "Error! La dirección de entrega no puede estar vacía.", },
+                new object[] { rentalWithInvalidDeliveryAddress, "Error en la dirección de envío. Por favor, introduce una dirección válida incluyendo las palabras Calle o Carretera", },
                 new object[] { rentalInvalidPaymentMethod, "Error! El método de pago debe ser 'CreditCard' o 'PayPal'.", },
                 new object[] { rentalWithInvalidQuantity, "Error! Debes alquilar al menos un dispositivo.", },
             };

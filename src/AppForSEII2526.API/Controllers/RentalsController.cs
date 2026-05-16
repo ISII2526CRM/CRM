@@ -82,14 +82,16 @@ namespace AppForSEII2526.API.Controllers
                 ModelState.AddModelError("User", "Error! No se encontró ningún usuario con el nombre y apellido proporcionados.");
             }
 
+            //string.IsNullOrWhiteSpace(rentalForCreate.DeliveryAddress)
             //la direccion de entrega no puede estar vacia
-            if (string.IsNullOrWhiteSpace(rentalForCreate.DeliveryAddress))
+            if (!(rentalForCreate.DeliveryAddress == null) && !(rentalForCreate.DeliveryAddress.Contains("Calle")) && !(rentalForCreate.DeliveryAddress.Contains("Carretera")))
             {
-                ModelState.AddModelError("DeliveryAddress", "Error! La dirección de entrega no puede estar vacía.");
+                ModelState.AddModelError("DeliveryAddress", "Error en la dirección de envío. Por favor, introduce una dirección válida incluyendo las palabras Calle o Carretera");
             }
 
             if (ModelState.ErrorCount > 0)
                 return BadRequest(new ValidationProblemDetails(ModelState));
+
             //Crear el rental
             var rental = new Rental
             {

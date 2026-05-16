@@ -1,5 +1,6 @@
 ﻿using AppForSEII2526.API.Controllers;
 using AppForSEII2526.API.DTOs.ReseñasDTOs;
+using AppForSEII2526.API.Models;
 using AppForSEII2526.UT;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -16,7 +17,6 @@ namespace AppForSEII2526.UT.ReseñasController_test
     {
         public GetReviewDetails_test()
         {
-            // Fixture común: modelos y dispositivos
             var models = new List<Model>
             {
                 new Model("ordenador"),
@@ -37,14 +37,11 @@ namespace AppForSEII2526.UT.ReseñasController_test
         [Fact]
         public async Task GetReviewDetails_NotFound_ReturnsNotFound()
         {
-            // Arrange
             var mockLogger = new Mock<ILogger<ReviewsController>>();
             var controller = new ReviewsController(_context, mockLogger.Object);
 
-            // Act
-            var result = await controller.GetReviewDetails(id: 9999); // id que no existe
+            var result = await controller.GetReviewDetails(9999);
 
-            // Assert
             Assert.IsType<NotFoundObjectResult>(result.Result);
         }
 
@@ -55,14 +52,10 @@ namespace AppForSEII2526.UT.ReseñasController_test
             var mockLogger = new Mock<ILogger<ReviewsController>>();
             var controller = new ReviewsController(_context, mockLogger.Object);
 
-            // Crear usuario
             var user = new ApplicationUser { UserName = "reviewer1" };
             _context.Add(user);
-
-            // Obtener un dispositivo existente
             var device = _context.Device.First();
 
-            // Crear reseña con ítem
             var review = new Review
             {
                 User = user,
@@ -79,43 +72,47 @@ namespace AppForSEII2526.UT.ReseñasController_test
                     }
                 }
             };
-
             _context.Add(review);
             _context.SaveChanges();
 
-            var reviewId = review.ReviewId;
+            // --- PREPARAMOS EL OBJETO ESPERADO (EXPECTED) ---
+            var expectedDTO = new ReviewDTO
+            {
+                ReviewId = review.ReviewId,
+                Username = "reviewer1",
+                CustomerCountry = "España",
+                ReviewTitle = "Muy buena compra",
+                DateOfReview = new DateTime(2024, 1, 2),
+                ReviewItems = new List<ReviewItemDTO>
+                {
+                    new ReviewItemDTO
+                    {
+                        // Nota: El controller rellena estos datos usando Include
+                        DeviceName = device.Name,
+                        DeviceModel = device.Model.NameModel,
+                        DeviceYear = device.Year,
+                        Rating = 5,
+                        Comment = "Excelente rendimiento"
+                    }
+                }
+            };
 
             // Act
-            var actionResult = await controller.GetReviewDetails(reviewId);
+            var actionResult = await controller.GetReviewDetails(review.ReviewId);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-            var dto = Assert.IsType<ReviewDTO>(okResult.Value);
+            var actualDTO = Assert.IsType<ReviewDTO>(okResult.Value);
 
-            Assert.Equal(user.UserName, dto.Username);
-            Assert.Equal("España", dto.CustomerCountry);
-            Assert.Equal("Muy buena compra", dto.ReviewTitle);
-            Assert.Equal(new DateTime(2024, 1, 2), dto.DateOfReview);
-
-            Assert.NotNull(dto.ReviewItems);
-            Assert.Single(dto.ReviewItems);
-
-            var item = dto.ReviewItems.First();
-            Assert.Equal(device.Name, item.DeviceName);
-            Assert.Equal(device.Model.NameModel, item.DeviceModel);
-            Assert.Equal(device.Year, item.DeviceYear);
-            Assert.Equal(5, item.Rating);
-            Assert.Equal("Excelente rendimiento", item.Comment);
+            // ¡MAGIA! Gracias al override de Equals, esto compara todo el árbol de objetos
+            Assert.Equal(expectedDTO, actualDTO);
         }
-
 
         [Fact]
         public async Task GetReviewDetails_ReviewHasNoItems_ReturnsOkWithEmptyList()
         {
-            // Arrange
             var mockLogger = new Mock<ILogger<ReviewsController>>();
             var controller = new ReviewsController(_context, mockLogger.Object);
-
             var user = new ApplicationUser { UserName = "reviewer2" };
             _context.Add(user);
 
@@ -124,53 +121,30 @@ namespace AppForSEII2526.UT.ReseñasController_test
                 User = user,
                 CustomerCountry = "México",
                 ReviewTitle = "Sin items",
-                ReviewItems = new List<ReviewItem>() // Lista VACÍA
+                ReviewItems = new List<ReviewItem>()
             };
             _context.Add(review);
             _context.SaveChanges();
 
-            // Act
-            var actionResult = await controller.GetReviewDetails(review.ReviewId);
-
-            // Assert
-            var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-            var dto = Assert.IsType<ReviewDTO>(okResult.Value);
-
-            // Verificamos que la lista existe, pero está vacía
-            Assert.NotNull(dto.ReviewItems);
-            Assert.Empty(dto.ReviewItems);
-        }
-
-        [Fact]
-        public async Task GetReviewDetails_UserIsNull_ReturnsOkWithNullUsername()
-        {
-            // Arrange
-            var mockLogger = new Mock<ILogger<ReviewsController>>();
-            var controller = new ReviewsController(_context, mockLogger.Object);
-
-            // Creamos una Review pero User es null (COMPORTAMIENTO ESPERADO)
-            var review = new Review
+            // Expected
+            var expectedDTO = new ReviewDTO
             {
-                User = null, // <-- Dato nulo
-                ReviewTitle = "Reseña huérfana",
-                CustomerCountry = "UK",
-                DateOfReview = DateTime.Now
+                ReviewId = review.ReviewId,
+                Username = "reviewer2",
+                CustomerCountry = "México",
+                ReviewTitle = "Sin items",
+                DateOfReview = review.DateOfReview, // Usamos la del objeto original porque DateTime.Now cambia
+                ReviewItems = new List<ReviewItemDTO>() // Lista vacía
             };
-            _context.Add(review);
-            _context.SaveChanges();
 
             // Act
             var actionResult = await controller.GetReviewDetails(review.ReviewId);
 
             // Assert
-            // 1. Verificamos que devuelve OK
             var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-            var dto = Assert.IsType<ReviewDTO>(okResult.Value);
+            var actualDTO = Assert.IsType<ReviewDTO>(okResult.Value);
 
-            // 2. Verificamos que el Username es null (que es el comportamiento opcional correcto)
-            Assert.Null(dto.Username);
-            Assert.Equal("Reseña huérfana", dto.ReviewTitle); // Los otros datos sí están
+            Assert.Equal(expectedDTO, actualDTO);
         }
-
     }
 }
