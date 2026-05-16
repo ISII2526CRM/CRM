@@ -15,7 +15,7 @@
 <h3>Select Devices for Review</h3>
 
 <div class="container-fluid">
-    @* BARRA SUPERIOR: Resumen y Botón de Acción *@
+    @* BARRA SUPERIOR *@
     <div class="row mb-3">
         <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded">
             <div>
@@ -28,7 +28,7 @@
         </div>
     </div>
 
-    @* BOTÓN TOGGLE: Ver carrito *@
+    @* Ver carrito *@
     <div class="row mb-3">
         <div class="col-12">
             <button class="btn btn-outline-primary" id="showReviewCart" @onclick="@ToggleReviewCart">
@@ -54,7 +54,6 @@
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <span>@item.DeviceName - @item.DeviceModel (@item.DeviceYear)</span>
 
-                                @* ID SÓLIDO SIN ESPACIOS *@
                                 <button class="btn btn-sm btn-danger"
                                         id="btn_remove_@item.DeviceName.Replace(" ", "_")"
                                         @onclick="@(() => RemoveDevice(item.DeviceId))">
@@ -102,7 +101,6 @@
                     <table class="table table-hover table-striped" id="TableOfDevices">
                         <thead class="thead-dark">
                             <tr>
-                                @* 1. AÑADIDO: Columna Name *@
                                 <th>Name</th>
                                 <th>Brand</th>
                                 <th>Model</th>
@@ -115,7 +113,6 @@
                             @foreach (var device in Devices)
                             {
                                 <tr id="Device_@device.Id">
-                                    @* AÑADIDO: Dato Name *@
                                     <td>@device.Name</td>
                                     <td>@device.Brand</td>
                                     <td>@device.Model</td>
@@ -145,7 +142,6 @@
     </div>
 </div>
 
-@* Dialogo para errores *@
 @if (DialogOKIsOpen)
 {
     <Dialog Caption="Information"
@@ -165,13 +161,10 @@
     private string? filterBrand;
     private int? filterYear;
 
-    // DATOS
     private ICollection<ApiDtos.DevicesReseñaDTO> Devices { get; set; } = new List<ApiDtos.DevicesReseñaDTO>();
 
-    // Estado global (Propiedad segura con null check)
     private ApiDtos.ReviewDTO currentReview => reviewState.CurrentReview;
 
-    // MÉTODOS DE UI
     private void ToggleReviewCart() => hiddenReviewCart = !hiddenReviewCart;
 
     private void OpenDialogOK(string message)
@@ -186,7 +179,6 @@
         return Task.CompletedTask;
     }
 
-    // LÓGICA DE NEGOCIO
     protected override async Task OnInitializedAsync()
     {
         await SearchDevices();

@@ -12,7 +12,6 @@
 
 <h3>Create Review</h3>
 
-@* Usamos OnValidSubmit: Solo abre el diálogo si Título y País están rellenos *@
 <EditForm Model="formModel" OnValidSubmit="OpenDialog">
     <DataAnnotationsValidator />
     <ValidationSummary />
@@ -55,7 +54,6 @@
                 <tbody>
                     @foreach (var item in reviewState.CurrentReview.ReviewItems)
                     {
-                        @* Asumimos que tienes un componente ReviewItem para editar la fila *@
                         <ReviewItem Item="item" OnRemovedItem="RemoveItem" OnChanged="StateHasChanged" />
                     }
                 </tbody>
@@ -68,8 +66,6 @@
         </div>
     }
 </EditForm>
-
-@* --- COMPONENTES DE DIÁLOGO --- *@
 
 @if (DialogIsOpen)
 {
@@ -90,7 +86,6 @@
 }
 
 @code {
-    // FORMULARIO 
     private class FormModel
     {
         [Required(ErrorMessage = "El título es obligatorio")]
@@ -99,25 +94,21 @@
         [Required(ErrorMessage = "El país es obligatorio")]
         public string CustomerCountry { get; set; } = string.Empty;
 
-        // Opcional
         public string Username { get; set; } = string.Empty;
     }
 
     private FormModel formModel = new();
 
-    // === ESTADO ===
     private bool DialogIsOpen = false;
     private bool DialogOKIsOpen = false;
     private string DialogOKMessage = "";
     private string DialogTitle = "Error";
-    private string CurrentUsername = "Anonymous";
 
     [CascadingParameter]
     private Task<AuthenticationState>? AuthenticationStateTask { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        
         formModel.ReviewTitle = reviewState.CurrentReview.ReviewTitle ?? string.Empty;
         formModel.CustomerCountry = reviewState.CurrentReview.CustomerCountry ?? string.Empty;
         formModel.Username = reviewState.CurrentReview.Username ?? string.Empty;
@@ -134,10 +125,8 @@
         }
     }
 
-    // VALIDACIÓN 
     private void OpenDialog()
     {
-        // Debe haber dispositivos seleccionados
         if (!reviewState.CurrentReview.ReviewItems.Any())
         {
             OpenDialogOK("Debe seleccionar al menos un dispositivo.", "Faltan datos");
@@ -161,7 +150,6 @@
                 {
                     ReviewTitle = formModel.ReviewTitle,
                     CustomerCountry = formModel.CustomerCountry,
-                    
                     Username = string.IsNullOrWhiteSpace(formModel.Username) ? "Anonymous" : formModel.Username,
 
                     ReviewItems = reviewState.CurrentReview.ReviewItems.Select(ri => new AppForSEII2526.Web.API.ReviewItemDTO
@@ -176,7 +164,6 @@
                 };
 
                 var result = await apiservice.CreateAsync(createDto);
-                
 
                 reviewState.RestartSession();
 
@@ -199,11 +186,9 @@
                 {
                     navigation.NavigateTo("/reviews/listdevices");
                 }
-
             }
             catch (AppForSEII2526.Web.API.ApiException<AppForSEII2526.Web.API.ValidationProblemDetails> exVal)
             {
-                
                 string message = "Datos inválidos:";
                 if (exVal.Result.Errors != null)
                 {
@@ -223,7 +208,6 @@
             }
         }
     }
-
 
     private void PrepareItemsForSubmission()
     {
@@ -245,7 +229,6 @@
 
     private void Cancel()
     {
-        // Guardamos los datos anteriores
         reviewState.CurrentReview.ReviewTitle = formModel.ReviewTitle;
         reviewState.CurrentReview.CustomerCountry = formModel.CustomerCountry;
         reviewState.CurrentReview.Username = formModel.Username;

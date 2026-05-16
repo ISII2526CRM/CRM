@@ -13,7 +13,6 @@
     <div class="alert alert-danger">
         @error
     </div>
-    @* Botón funcional incluso si hay error *@
     <button class="btn btn-secondary mt-2" @onclick="GoBack">Back to List</button>
 }
 else if (review == null)
@@ -22,7 +21,6 @@ else if (review == null)
 }
 else
 {
-    @* --- CABECERA DE LA RESEÑA --- *@
     <div class="card mb-4">
         <div class="card-header bg-light">
             <strong>General Information</strong>
@@ -32,7 +30,6 @@ else
                 <tr>
                     <th style="width: 200px;">Review Title:</th>
                     <td id="ReviewTitle" class="fs-5">
-                        @* Aquí se muestra el Título General de la Reseña *@
                         <strong>@review.ReviewTitle</strong>
                     </td>
                 </tr>
@@ -52,7 +49,7 @@ else
         </div>
     </div>
 
-    @* --- TABLA DE DISPOSITIVOS --- *@
+    @* TABLA DE DISPOSITIVOS *@
     <h4>Reviewed Devices</h4>
 
     <div class="table-responsive">
@@ -106,7 +103,6 @@ else
     {
         string currentUserName = "";
 
-        // Obtener usuario logueado
         if (authenticationState is not null)
         {
             var authState = await authenticationState;
@@ -129,7 +125,6 @@ else
             error = $"Error fetching review (Status: {exception.StatusCode})";
         }
 
-        // Verificación de Seguridad
         if (review != null)
         {
             // Solo permitimos ver la reseña si eres el dueño o es anónima
@@ -146,7 +141,6 @@ else
         }
     }
 
-    // NAVEGACIÓN
     private void GoBack()
     {
         navigation.NavigateTo("/reviews/listdevices");
