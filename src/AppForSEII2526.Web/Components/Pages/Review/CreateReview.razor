@@ -12,19 +12,22 @@
 
 <h3>Create Review</h3>
 
-@* Usamos OnValidSubmit: Solo abre el diálogo si Título y País están rellenos *@
 <EditForm Model="formModel" OnValidSubmit="OpenDialog">
     <DataAnnotationsValidator />
     <ValidationSummary />
 
     <div class="row mb-3">
-        <div class="col-md-6 form-floating">
+        <div class="col-md-4 form-floating">
             <InputText @bind-Value="formModel.ReviewTitle" class="form-control" id="ReviewTitle" />
             <label for="ReviewTitle">Review Title</label>
         </div>
         <div class="col-md-4 form-floating">
             <InputText @bind-Value="formModel.CustomerCountry" class="form-control" id="CustomerCountry" />
             <label for="CustomerCountry">Country</label>
+        </div>
+        <div class="col-md-4 form-floating">
+            <InputText @bind-Value="formModel.Username" class="form-control" id="CustomerName" />
+            <label for="CustomerName">Customer Name (Optional)</label>
         </div>
     </div>
 
@@ -51,7 +54,6 @@
                 <tbody>
                     @foreach (var item in reviewState.CurrentReview.ReviewItems)
                     {
-                        @* Asumimos que tienes un componente ReviewItem para editar la fila *@
                         <ReviewItem Item="item" OnRemovedItem="RemoveItem" OnChanged="StateHasChanged" />
                     }
                 </tbody>
@@ -64,8 +66,6 @@
         </div>
     }
 </EditForm>
-
-@* --- COMPONENTES DE DIÁLOGO --- *@
 
 @if (DialogIsOpen)
 {
@@ -86,7 +86,6 @@
 }
 
 @code {
-    // === MODELO DEL FORMULARIO ===
     private class FormModel
     {
         [Required(ErrorMessage = "El título es obligatorio")]
@@ -94,40 +93,40 @@
 
         [Required(ErrorMessage = "El país es obligatorio")]
         public string CustomerCountry { get; set; } = string.Empty;
+
+        public string Username { get; set; } = string.Empty;
     }
 
     private FormModel formModel = new();
 
-    // === ESTADO ===
     private bool DialogIsOpen = false;
     private bool DialogOKIsOpen = false;
     private string DialogOKMessage = "";
     private string DialogTitle = "Error";
-    private string CurrentUsername = "Anonymous";
 
     [CascadingParameter]
     private Task<AuthenticationState>? AuthenticationStateTask { get; set; }
 
-    // === INICIALIZACIÓN ===
     protected override async Task OnInitializedAsync()
     {
-        // Cargamos el usuario actual
-        if (AuthenticationStateTask is not null)
+        formModel.ReviewTitle = reviewState.CurrentReview.ReviewTitle ?? string.Empty;
+        formModel.CustomerCountry = reviewState.CurrentReview.CustomerCountry ?? string.Empty;
+        formModel.Username = reviewState.CurrentReview.Username ?? string.Empty;
+
+        if (string.IsNullOrWhiteSpace(formModel.Username) && AuthenticationStateTask is not null)
         {
             var authState = await AuthenticationStateTask;
             var user = authState?.User;
 
             if (user is not null && user.Identity is not null && user.Identity.IsAuthenticated)
             {
-                CurrentUsername = user.Identity.Name ?? "Anonymous";
+                formModel.Username = user.Identity.Name ?? "Anonymous";
             }
         }
     }
 
-    // === LÓGICA DE VALIDACIÓN ===
     private void OpenDialog()
     {
-        // Validación extra: Debe haber dispositivos seleccionados
         if (!reviewState.CurrentReview.ReviewItems.Any())
         {
             OpenDialogOK("Debe seleccionar al menos un dispositivo.", "Faltan datos");
@@ -136,7 +135,6 @@
         DialogIsOpen = true;
     }
 
-    // === ENVÍO AL SERVIDOR ===
     private async Task OnDialogClose(bool isOk)
     {
         DialogIsOpen = false;
@@ -146,36 +144,29 @@
         {
             try
             {
-                // 1. Preparamos los comentarios (Regla "Reseña para...")
                 PrepareItemsForSubmission();
 
-                // 2. Construimos el DTO
                 var createDto = new AppForSEII2526.Web.API.CreateReviewDTO
                 {
                     ReviewTitle = formModel.ReviewTitle,
                     CustomerCountry = formModel.CustomerCountry,
-                    Username = CurrentUsername,
+                    Username = string.IsNullOrWhiteSpace(formModel.Username) ? "Anonymous" : formModel.Username,
 
-                    // Mapeamos solo ID, Rating y Comment. El resto null/0 para evitar problemas.
                     ReviewItems = reviewState.CurrentReview.ReviewItems.Select(ri => new AppForSEII2526.Web.API.ReviewItemDTO
                     {
                         DeviceId = ri.DeviceId,
                         Rating = ri.Rating,
                         Comment = ri.Comment,
-
                         DeviceName = null,
                         DeviceModel = null,
                         DeviceYear = 0
                     }).ToList()
                 };
 
-                // 3. Llamada a la API
                 var result = await apiservice.CreateAsync(createDto);
 
-                // 4. Limpiamos la sesión (el carrito)
                 reviewState.RestartSession();
 
-                // 5. Intentamos obtener el ID nuevo para redirigir
                 int newId = 0;
                 if (result != null)
                 {
@@ -193,14 +184,11 @@
                 }
                 else
                 {
-                    // Si se creó pero no tenemos ID, volvemos a la lista
                     navigation.NavigateTo("/reviews/listdevices");
                 }
-
             }
             catch (AppForSEII2526.Web.API.ApiException<AppForSEII2526.Web.API.ValidationProblemDetails> exVal)
             {
-                // Manejo de errores de validación (400 Bad Request)
                 string message = "Datos inválidos:";
                 if (exVal.Result.Errors != null)
                 {
@@ -221,9 +209,6 @@
         }
     }
 
-    // === MÉTODOS AUXILIARES ===
-
-    // Asegura que los comentarios cumplan la regla del backend
     private void PrepareItemsForSubmission()
     {
         foreach (var it in reviewState.CurrentReview.ReviewItems)
@@ -244,6 +229,10 @@
 
     private void Cancel()
     {
+        reviewState.CurrentReview.ReviewTitle = formModel.ReviewTitle;
+        reviewState.CurrentReview.CustomerCountry = formModel.CustomerCountry;
+        reviewState.CurrentReview.Username = formModel.Username;
+
         navigation.NavigateTo("/reviews/listdevices");
     }
 

@@ -14,43 +14,32 @@ namespace AppForSEII2526.Web
         public event Action? OnChange;
         private void NotifyStateChanged() => OnChange?.Invoke();
 
-       
+
         // Lógica de Selección (El Puente)
-        
+
 
         // Recibe el objeto de la lista (DevicesReseñaDTO)
         public void AddDeviceToReview(DevicesReseñaDTO deviceFromCatalog)
         {
-            // 1. Evitar duplicados: Comprobamos por ID
             if (!CurrentReview.ReviewItems.Any(ri => ri.DeviceId == deviceFromCatalog.Id))
             {
-                // 2. Mapeo (Transformación):
-                // Convertimos el DTO de visualización en un DTO de reseña
                 var newItem = new ReviewItemDTO()
                 {
-                    // IDs y claves
                     DeviceId = deviceFromCatalog.Id,
-
-                    // Datos informativos (copiamos lo que viene del catálogo)
-                    // Nota: Mapeamos 'Brand' a 'DeviceName' para que coincida con tu DTO anterior
-                    DeviceName = deviceFromCatalog.Brand,
+                    DeviceName = deviceFromCatalog.Name,
                     DeviceModel = deviceFromCatalog.Model,
                     DeviceYear = deviceFromCatalog.Year,
 
-                    // Inicializamos los campos vacíos para que el usuario escriba luego
                     Rating = 0,
                     Comment = string.Empty
                 };
 
-                // 3. Añadir a la sesión
                 CurrentReview.ReviewItems.Add(newItem);
-
-                // 4. Actualizar vista
                 NotifyStateChanged();
             }
         }
 
-        
+
         // Métodos de Gestión (Eliminar, Limpiar)
         public void RemoveDevice(int deviceId)
         {

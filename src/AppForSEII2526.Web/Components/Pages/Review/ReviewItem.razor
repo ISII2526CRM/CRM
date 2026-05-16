@@ -21,7 +21,6 @@
             </div>
 
             <div class="ms-3">
-                @* Añadido type="button" para que no haga submit *@
                 <button type="button" class="btn btn-sm btn-outline-danger" title="Remove" @onclick="RemoveItem">
                     <span class="bi bi-trash"></span>
                 </button>
@@ -33,10 +32,8 @@
 @code {
     [Parameter, EditorRequired] public ApiDtos.ReviewItemDTO Item { get; set; } = new();
 
-    // Emite DeviceId al componente padre para eliminarlo
     [Parameter] public EventCallback<int> OnRemovedItem { get; set; }
-
-    // Notifica cambios (opcional) para que el padre refresque la UI o valide
+    
     [Parameter] public EventCallback OnChanged { get; set; }
 
     private Task RemoveItem() => OnRemovedItem.HasDelegate
