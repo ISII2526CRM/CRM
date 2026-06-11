@@ -46,6 +46,21 @@ VALUES (
     2024
 );
 
+-- MX Keys S
+INSERT INTO [dbo].[Device] (
+    [ModelId], [Name], [Brand], [Color], 
+    [PriceForPurchase], [PriceForRent], 
+    [QuantityForPurchase], [QuantityForRent], 
+    [Year]
+)
+VALUES (
+    @ModelId, 'Otro', 'Logitech', 'Grafito', 
+    120, 15, 
+    20, 2, 
+    2024
+);
+
+
 -- ... (después de insertar los dispositivos) ...
 
 -- 5. USUARIOS: Crear usuario de prueba 'alice@test.com'

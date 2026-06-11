@@ -195,7 +195,6 @@ namespace AppForSEII2526.UIT.ReviewDevices
             string comment = ""; 
 
             createReviewPO.FillInReviewInfo(title, country);
-
             createReviewPO.FillInAllRatingsAndComments(rating, comment);
             createReviewPO.PressSaveReview();
 
@@ -228,6 +227,60 @@ namespace AppForSEII2526.UIT.ReviewDevices
                 expectedComment: "Reseña para MX Keys S:"
             );
             Assert.True(isDevice2Present, "El MX Keys S no se guardó correctamente en la reseña múltiple.");
+        }
+
+        // Examen Sprint 3 extraordinaria
+        [Fact]
+        [Trait("LevelTesting", "Funcional Testing")]
+        public void ExamenSprint3()
+        {
+            var createReviewPO = new CreateReview_PO(_driver, _output);
+            var detailsPO = new ReviewDetails_PO(_driver, _output);
+
+            InitialStepsForReviewDevices();
+            _listDevicesPO.FilterDevices("Logitech", " ");
+            _listDevicesPO.SelectDevices(new List<string> { "MX Keys S", "Otro" });
+
+            _listDevicesPO.FilterDevices(" ", Device1_Year);
+            _listDevicesPO.SelectDevices(new List<string> { Device1_Name });
+
+            _listDevicesPO.RemoveDeviceFromCart("MX Keys S");
+            _listDevicesPO.RemoveDeviceFromCart("Otro");
+            _listDevicesPO.ClickReviewDevices();
+
+            string title = "Examen Sprint3";
+            string country = "France";
+            string rating = "5";
+            string comment = "¡Va genial!";
+
+            createReviewPO.FillInReviewInfo(title, country);
+            createReviewPO.FillInAllRatingsAndComments(rating, comment);
+            createReviewPO.PressSaveReview();
+
+            try
+            {
+                var wait = new OpenQA.Selenium.Support.UI.WebDriverWait(_driver, TimeSpan.FromSeconds(5));
+                wait.Until(d => d.Url.ToLower().Contains("detailreview"));
+            }
+            catch
+            {
+                Assert.Contains("detailreview", _driver.Url.ToLower());
+            }
+
+            Assert.True(detailsPO.CheckReviewDetails(title, country, string.Empty), "Header details mismatch.");
+
+            string expectedFullComment = $"Reseña para {Device1_Name}: {comment}";
+
+            bool isExactObjectPresent = detailsPO.CheckExactReviewItem(
+                expectedName: Device1_Name,
+                expectedModel: Device1_Model,
+                expectedYear: Device1_Year,
+                expectedRating: rating,
+                expectedComment: expectedFullComment
+            );
+
+            Assert.True(isExactObjectPresent, "Exact review item mapping not found in details table.");
+
         }
     }
 }
